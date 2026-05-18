@@ -50,7 +50,7 @@ const alertSigns = [
   'Dolor opresivo en el pecho que dura más de 10 minutos.',
   'Falta de aire intensa, desmayo o confusión.',
   'Palpitaciones sostenidas con mareo o debilidad marcada.',
-  'Hinchazón brusca de piernas o aumento rápido de peso.',
+  'Registro de presión arterial sistólica mayor a 180 mmHg, especialmente si se acompaña de dolor de pecho, falta de aire, cefalea intensa, visión borrosa o síntomas neurológicos.',
 ];
 
 const emptyMedicationFields = { medName: '', medSchedule: '', medEffects: '' };
