@@ -72,6 +72,7 @@ export default function App() {
   const [medications, setMedications] = useState(() => loadSavedRecords().medications || []);
   const [editingMedicationId, setEditingMedicationId] = useState(null);
   const [pressureRecords, setPressureRecords] = useState(() => loadSavedRecords().pressureRecords || []);
+  const [glucoseRecords, setGlucoseRecords] = useState(() => loadSavedRecords().glucoseRecords || []);
   const [form, setForm] = useState({
     symptom: '',
     intensity: 'Leve',
@@ -87,6 +88,9 @@ export default function App() {
     pressureSymptoms: '',
     pressureMeds: '',
     pressureNotes: '',
+    glucoseValue: '',
+    glucoseType: 'Ayunas',
+    glucoseNotes: '',
     medName: '',
     medSchedule: '',
     medEffects: '',
@@ -112,9 +116,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ symptomRecords, medications, pressureRecords }),
+      JSON.stringify({ symptomRecords, medications, pressureRecords, glucoseRecords }),
     );
-  }, [symptomRecords, medications, pressureRecords]);
+  }, [symptomRecords, medications, pressureRecords, glucoseRecords]);
 
   function navigateTo(nextView) {
     setSaved(false);
@@ -193,26 +197,48 @@ export default function App() {
 
   function savePressureRecord(event) {
     event.preventDefault();
-    if (!form.systolic.trim() && !form.diastolic.trim() && !form.pulse.trim()) return;
+    const hasPressure = form.systolic.trim() || form.diastolic.trim() || form.pulse.trim();
+    const hasGlucose = form.glucoseValue.trim();
+    if (!hasPressure && !hasGlucose) return;
 
-    setPressureRecords((current) => [
-      {
-        id: crypto.randomUUID(),
-        date: form.pressureDate || new Date().toISOString().slice(0, 10),
-        time: form.pressureTime || new Date().toTimeString().slice(0, 5),
-        systolic: form.systolic.trim(),
-        diastolic: form.diastolic.trim(),
-        pulse: form.pulse.trim(),
-        arm: form.arm,
-        position: form.position,
-        restTime: form.restTime,
-        moment: form.pressureMoment,
-        symptoms: form.pressureSymptoms.trim(),
-        meds: form.pressureMeds.trim(),
-        notes: form.pressureNotes.trim(),
-      },
-      ...current,
-    ]);
+    const date = form.pressureDate || new Date().toISOString().slice(0, 10);
+    const time = form.pressureTime || new Date().toTimeString().slice(0, 5);
+
+    if (hasPressure) {
+      setPressureRecords((current) => [
+        {
+          id: crypto.randomUUID(),
+          date,
+          time,
+          systolic: form.systolic.trim(),
+          diastolic: form.diastolic.trim(),
+          pulse: form.pulse.trim(),
+          arm: form.arm,
+          position: form.position,
+          restTime: form.restTime,
+          moment: form.pressureMoment,
+          symptoms: form.pressureSymptoms.trim(),
+          meds: form.pressureMeds.trim(),
+          notes: form.pressureNotes.trim(),
+        },
+        ...current,
+      ]);
+    }
+
+    if (hasGlucose) {
+      setGlucoseRecords((current) => [
+        {
+          id: crypto.randomUUID(),
+          date,
+          time,
+          value: form.glucoseValue.trim(),
+          type: form.glucoseType,
+          notes: form.glucoseNotes.trim(),
+        },
+        ...current,
+      ]);
+    }
+
     setForm((current) => ({
       ...current,
       pressureTime: '',
@@ -222,6 +248,9 @@ export default function App() {
       pressureSymptoms: '',
       pressureMeds: '',
       pressureNotes: '',
+      glucoseValue: '',
+      glucoseType: 'Ayunas',
+      glucoseNotes: '',
     }));
     setSaved(true);
   }
@@ -263,6 +292,7 @@ export default function App() {
             medications={medications}
             editingMedicationId={editingMedicationId}
             pressureRecords={pressureRecords}
+            glucoseRecords={glucoseRecords}
             onBack={navigateHome}
             onChange={updateField}
             onSaveSymptom={saveSymptom}
@@ -274,7 +304,7 @@ export default function App() {
           />
         )}
       </main>
-      <PatientReport medications={medications} pressureRecords={pressureRecords} />
+      <PatientReport medications={medications} pressureRecords={pressureRecords} glucoseRecords={glucoseRecords} />
     </>
   );
 }
@@ -340,6 +370,7 @@ function SectionView({
   medications,
   editingMedicationId,
   pressureRecords,
+  glucoseRecords,
   onBack,
   onChange,
   onSaveSymptom,
@@ -472,7 +503,7 @@ function SectionView({
 
           <button className="btn red full" type="button" onClick={onPrintPatientReport}>
             <ClipboardList size={18} />
-            Generar PDF con medicación y presión
+            Generar PDF con medicación, presión y glucosa
           </button>
         </>
       )}
@@ -574,18 +605,49 @@ function SectionView({
               />
             </label>
 
+            <div className="row two">
+              <label className="field">
+                <span>Glucosa</span>
+                <input
+                  name="glucoseValue"
+                  inputMode="numeric"
+                  value={form.glucoseValue}
+                  onChange={onChange}
+                  placeholder="Ej. 105 mg/dL"
+                />
+              </label>
+              <label className="field">
+                <span>Tipo de medición</span>
+                <select name="glucoseType" value={form.glucoseType} onChange={onChange}>
+                  <option>Ayunas</option>
+                  <option>Al azar</option>
+                </select>
+              </label>
+            </div>
+
+            <label className="field">
+              <span>Notas de glucosa</span>
+              <textarea
+                name="glucoseNotes"
+                value={form.glucoseNotes}
+                onChange={onChange}
+                placeholder="Ej. antes de desayunar, después de comer, síntomas asociados o medicación antidiabética."
+              />
+            </label>
+
             <button className="btn primary full" type="submit">
               <CalendarDays size={18} />
-              Guardar medición de presión
+              Guardar control
             </button>
-            {saved && <p className="success">Medición guardada en esta sesión.</p>}
+            {saved && <p className="success">Control guardado en esta sesión.</p>}
           </form>
 
           <PressureRecords records={pressureRecords} />
+          <GlucoseRecords records={glucoseRecords} />
 
           <button className="btn red full" type="button" onClick={onPrintPatientReport}>
             <ClipboardList size={18} />
-            Generar PDF con medicación y presión
+            Generar PDF con medicación, presión y glucosa
           </button>
         </>
       )}
@@ -616,7 +678,7 @@ function SectionView({
   );
 }
 
-function PatientReport({ medications, pressureRecords }) {
+function PatientReport({ medications, pressureRecords, glucoseRecords }) {
   const generatedAt = new Date().toLocaleString('es-EC', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -695,6 +757,36 @@ function PatientReport({ medications, pressureRecords }) {
           </table>
         )}
       </article>
+
+      <article>
+        <h2>Registros de glucosa</h2>
+        {glucoseRecords.length === 0 ? (
+          <p>Sin controles de glucosa registrados.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Glucosa</th>
+                <th>Tipo</th>
+                <th>Notas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {glucoseRecords.map((record) => (
+                <tr key={record.id}>
+                  <td>{record.date}</td>
+                  <td>{record.time}</td>
+                  <td>{record.value} mg/dL</td>
+                  <td>{record.type}</td>
+                  <td>{record.notes || 'Sin notas'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </article>
     </section>
   );
 }
@@ -716,6 +808,51 @@ function SymptomRecords({ records }) {
                 <h3>{record.symptom}</h3>
               </div>
               <strong>{record.intensity}</strong>
+            </div>
+            <div className="control-meta">
+              <span>{record.date}</span>
+              <span>{record.time}</span>
+            </div>
+            <p><strong>Notas:</strong> {record.notes || 'Sin notas'}</p>
+          </article>
+        ))
+      )}
+    </section>
+  );
+}
+
+function GlucoseRecords({ records }) {
+  const latest = records[0];
+
+  return (
+    <section className="grid">
+      <div className="summary-grid">
+        <article className="stat-card">
+          <span>Glucosas</span>
+          <strong>{records.length}</strong>
+          <p>controles registrados</p>
+        </article>
+        <article className="stat-card">
+          <span>Última glucosa</span>
+          <strong>{latest ? `${latest.value} mg/dL` : '--'}</strong>
+          <p>{latest ? `${latest.type} · ${latest.date} ${latest.time}` : 'Sin registros todavía'}</p>
+        </article>
+      </div>
+
+      {records.length === 0 ? (
+        <article className="med-card">
+          <h3>Sin glucosas cargadas todavía.</h3>
+          <p>Si el paciente es diabético, puede registrar glucosa en ayunas o al azar junto con sus controles.</p>
+        </article>
+      ) : (
+        records.map((record, index) => (
+          <article className="control-card" key={record.id}>
+            <div className="control-card-head">
+              <div>
+                <span>Glucosa {records.length - index}</span>
+                <h3>{record.value} mg/dL</h3>
+              </div>
+              <strong>{record.type}</strong>
             </div>
             <div className="control-meta">
               <span>{record.date}</span>
