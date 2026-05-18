@@ -264,7 +264,12 @@ function HomeView({ onSelect }) {
             <Stethoscope size={15} />
             App del paciente cardiológico
           </div>
-          <h1>Cardio GM</h1>
+          <div className="hero-brand-row">
+            <div>
+              <h1>Cardio GM</h1>
+            </div>
+            <CardioGmLogo />
+          </div>
           <h2>Dr. Giancarlo Muñoz Rennella</h2>
           <h3>Cardiólogo Intervencionista</h3>
           <p>
@@ -297,6 +302,39 @@ function HomeView({ onSelect }) {
         })}
       </section>
     </>
+  );
+}
+
+function CardioGmLogo() {
+  return (
+    <div className="hero-logo" aria-label="Logo Cardio GM">
+      <svg viewBox="0 0 220 190" role="img" aria-hidden="true">
+        <rect width="220" height="190" rx="24" fill="#c5163b" />
+        <rect width="220" height="40" fill="#173f7a" />
+        <rect y="178" width="220" height="12" fill="#e23052" opacity=".75" />
+        <path
+          d="M24 109h24l5-16 6 35 7-29 7 10h22"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M111 74c-18-26-56-19-70 9-18 35 20 69 70 91 50-22 88-56 70-91-14-28-52-35-70-9z"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M105 105c0-29 25-52 61-52 13 0 24 3 33 8-10-13-25-21-44-21-43 0-74 29-74 65 0 34 28 60 71 60 14 0 26-3 37-8-8 3-17 4-28 4-34 0-56-23-56-56z"
+          fill="#c5163b"
+        />
+        <text x="105" y="124" fill="#fff" fontFamily="Georgia, serif" fontSize="80" fontWeight="700">GM</text>
+      </svg>
+    </div>
   );
 }
 
