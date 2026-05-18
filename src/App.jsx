@@ -204,6 +204,10 @@ export default function App() {
     setSaved(true);
   }
 
+  function printPatientReport() {
+    window.print();
+  }
+
   return (
     <>
       <header className="header">
@@ -242,9 +246,11 @@ export default function App() {
             onEditMedication={editMedication}
             onCancelMedicationEdit={cancelMedicationEdit}
             onSavePressureRecord={savePressureRecord}
+            onPrintPatientReport={printPatientReport}
           />
         )}
       </main>
+      <PatientReport medications={medications} pressureRecords={pressureRecords} />
     </>
   );
 }
@@ -309,6 +315,7 @@ function SectionView({
   onEditMedication,
   onCancelMedicationEdit,
   onSavePressureRecord,
+  onPrintPatientReport,
 }) {
   const Icon = section?.icon || ClipboardList;
 
@@ -430,6 +437,11 @@ function SectionView({
           <div className="warning">
             No suspender ni cambiar dosis sin indicación médica. Llevar esta lista actualizada a cada control.
           </div>
+
+          <button className="btn red full" type="button" onClick={onPrintPatientReport}>
+            <ClipboardList size={18} />
+            Generar PDF con medicación y presión
+          </button>
         </>
       )}
 
@@ -538,6 +550,11 @@ function SectionView({
           </form>
 
           <PressureRecords records={pressureRecords} />
+
+          <button className="btn red full" type="button" onClick={onPrintPatientReport}>
+            <ClipboardList size={18} />
+            Generar PDF con medicación y presión
+          </button>
         </>
       )}
 
@@ -564,6 +581,86 @@ function SectionView({
         </div>
       )}
     </>
+  );
+}
+
+function PatientReport({ medications, pressureRecords }) {
+  const generatedAt = new Date().toLocaleString('es-EC', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+
+  return (
+    <section className="print-report" aria-label="Resumen para imprimir">
+      <header>
+        <h1>Cardio GM</h1>
+        <h2>Dr. Giancarlo Muñoz Rennella</h2>
+        <p>Cardiólogo Intervencionista</p>
+        <p>Resumen generado: {generatedAt}</p>
+      </header>
+
+      <article>
+        <h2>Medicación actual</h2>
+        {medications.length === 0 ? (
+          <p>Sin medicación registrada.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Medicación</th>
+                <th>Horario y dosis</th>
+                <th>Efectos secundarios</th>
+              </tr>
+            </thead>
+            <tbody>
+              {medications.map((medication) => (
+                <tr key={medication.id}>
+                  <td>{medication.name}</td>
+                  <td>{medication.schedule}</td>
+                  <td>{medication.effects || 'No registrados'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </article>
+
+      <article>
+        <h2>Registros de presión arterial</h2>
+        {pressureRecords.length === 0 ? (
+          <p>Sin controles de presión registrados.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Presión</th>
+                <th>Pulso</th>
+                <th>Contexto</th>
+                <th>Síntomas / observaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pressureRecords.map((record) => (
+                <tr key={record.id}>
+                  <td>{record.date}</td>
+                  <td>{record.time}</td>
+                  <td>{record.systolic || '-'} / {record.diastolic || '-'} mmHg</td>
+                  <td>{record.pulse || '-'} lpm</td>
+                  <td>{record.moment}, {record.arm}, {record.position}, reposo: {record.restTime}</td>
+                  <td>
+                    Síntomas: {record.symptoms || 'No registrados'}.
+                    Medicación previa: {record.meds || 'No registrada'}.
+                    Observaciones: {record.notes || 'Sin observaciones'}.
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </article>
+    </section>
   );
 }
 
