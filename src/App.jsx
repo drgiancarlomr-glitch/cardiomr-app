@@ -511,17 +511,6 @@ function SectionView({
       {section?.id === 'controls' && (
         <>
           <form className="form-card" onSubmit={onSavePressureRecord}>
-            <div className="row two">
-              <label className="field">
-                <span>Fecha</span>
-                <input type="date" name="pressureDate" value={form.pressureDate} onChange={onChange} />
-              </label>
-              <label className="field">
-                <span>Hora</span>
-                <input type="time" name="pressureTime" value={form.pressureTime} onChange={onChange} />
-              </label>
-            </div>
-
             <div className="row three">
               <label className="field">
                 <span>Sistólica</span>
