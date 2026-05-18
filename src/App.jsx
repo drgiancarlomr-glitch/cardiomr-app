@@ -279,9 +279,6 @@ function HomeView({ onSelect }) {
           <div className="hero-box">
             Esta app no reemplaza una consulta médica. Ante síntomas intensos o nuevos, busca atención inmediata.
           </div>
-          <div className="hero-box">
-            Los registros quedan guardados en este dispositivo aunque cierres la página.
-          </div>
         </div>
       </section>
 
