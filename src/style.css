@@ -127,13 +127,10 @@ button, input, textarea, select {
 }
 
 .hero-logo {
-  width: clamp(100px, 20vw, 148px);
+  width: clamp(132px, 24vw, 190px);
   flex: 0 0 auto;
-  border-radius: 26px;
-  overflow: hidden;
-  box-shadow: 0 18px 38px rgba(2,6,23,.28);
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.08);
+  filter: drop-shadow(0 18px 24px rgba(2,6,23,.35));
+  opacity: .96;
 }
 
 .hero-logo svg {
@@ -444,8 +441,7 @@ input:focus, select:focus, textarea:focus {
   }
 
   .hero-logo {
-    width: 92px;
-    border-radius: 20px;
+    width: 112px;
   }
 }
 

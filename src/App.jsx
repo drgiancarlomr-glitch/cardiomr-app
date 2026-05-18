@@ -308,20 +308,9 @@ function HomeView({ onSelect }) {
 function CardioGmLogo() {
   return (
     <div className="hero-logo" aria-label="Logo Cardio GM">
-      <svg viewBox="0 0 220 190" role="img" aria-hidden="true">
-        <rect width="220" height="190" rx="24" fill="#c5163b" />
-        <rect width="220" height="40" fill="#173f7a" />
-        <rect y="178" width="220" height="12" fill="#e23052" opacity=".75" />
+      <svg viewBox="0 0 260 150" role="img" aria-hidden="true">
         <path
-          d="M24 109h24l5-16 6 35 7-29 7 10h22"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M111 74c-18-26-56-19-70 9-18 35 20 69 70 91 50-22 88-56 70-91-14-28-52-35-70-9z"
+          d="M16 84h30l6-18 7 39 8-31 8 10h36"
           fill="none"
           stroke="#fff"
           strokeWidth="6"
@@ -329,10 +318,19 @@ function CardioGmLogo() {
           strokeLinejoin="round"
         />
         <path
-          d="M105 105c0-29 25-52 61-52 13 0 24 3 33 8-10-13-25-21-44-21-43 0-74 29-74 65 0 34 28 60 71 60 14 0 26-3 37-8-8 3-17 4-28 4-34 0-56-23-56-56z"
-          fill="#c5163b"
+          d="M118 48c-20-27-65-20-82 10-23 41 23 75 82 103 58-28 104-62 82-103-17-30-62-37-82-10z"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        <text x="105" y="124" fill="#fff" fontFamily="Georgia, serif" fontSize="80" fontWeight="700">GM</text>
+        <path
+          d="M112 91c0-38 33-68 81-68 17 0 31 4 43 11-13-17-33-27-57-27-57 0-98 38-98 85 0 45 37 79 94 79 18 0 35-4 49-11-11 4-23 6-37 6-45 0-75-30-75-75z"
+          fill="#172554"
+          opacity=".82"
+        />
+        <text x="123" y="105" fill="#fff" fontFamily="Georgia, serif" fontSize="82" fontWeight="700">GM</text>
       </svg>
     </div>
   );
