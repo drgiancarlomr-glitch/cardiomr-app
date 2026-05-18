@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -54,14 +54,25 @@ const alertSigns = [
 ];
 
 const emptyMedicationFields = { medName: '', medSchedule: '', medEffects: '' };
+const storageKey = 'cardio-gm-patient-records';
+
+function loadSavedRecords() {
+  try {
+    const savedRecords = localStorage.getItem(storageKey);
+    if (!savedRecords) return {};
+    return JSON.parse(savedRecords);
+  } catch {
+    return {};
+  }
+}
 
 export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
-  const [symptomRecords, setSymptomRecords] = useState([]);
-  const [medications, setMedications] = useState([]);
+  const [symptomRecords, setSymptomRecords] = useState(() => loadSavedRecords().symptomRecords || []);
+  const [medications, setMedications] = useState(() => loadSavedRecords().medications || []);
   const [editingMedicationId, setEditingMedicationId] = useState(null);
-  const [pressureRecords, setPressureRecords] = useState([]);
+  const [pressureRecords, setPressureRecords] = useState(() => loadSavedRecords().pressureRecords || []);
   const [form, setForm] = useState({
     symptom: '',
     intensity: 'Leve',
@@ -87,6 +98,13 @@ export default function App() {
     () => sections.find((section) => section.id === view),
     [view],
   );
+
+  useEffect(() => {
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({ symptomRecords, medications, pressureRecords }),
+    );
+  }, [symptomRecords, medications, pressureRecords]);
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -249,6 +267,9 @@ function HomeView({ onSelect }) {
           </p>
           <div className="hero-box">
             Esta app no reemplaza una consulta médica. Ante síntomas intensos o nuevos, busca atención inmediata.
+          </div>
+          <div className="hero-box">
+            Los registros quedan guardados en este dispositivo aunque cierres la página.
           </div>
         </div>
       </section>
