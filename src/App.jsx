@@ -9,7 +9,6 @@ import {
   Edit3,
   HeartPulse,
   Home,
-  Menu,
   MessageCircle,
   Pill,
   Phone,
@@ -100,11 +99,34 @@ export default function App() {
   );
 
   useEffect(() => {
+    window.history.replaceState({ view: 'home' }, '', window.location.pathname);
+
+    function handleBackButton(event) {
+      setView(event.state?.view || 'home');
+    }
+
+    window.addEventListener('popstate', handleBackButton);
+    return () => window.removeEventListener('popstate', handleBackButton);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(
       storageKey,
       JSON.stringify({ symptomRecords, medications, pressureRecords }),
     );
   }, [symptomRecords, medications, pressureRecords]);
+
+  function navigateTo(nextView) {
+    setSaved(false);
+    setView(nextView);
+    window.history.pushState({ view: nextView }, '', window.location.pathname);
+  }
+
+  function navigateHome() {
+    setSaved(false);
+    setView('home');
+    window.history.replaceState({ view: 'home' }, '', window.location.pathname);
+  }
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -212,7 +234,7 @@ export default function App() {
     <>
       <header className="header">
         <div className="header-inner">
-          <button className="brand" type="button" onClick={() => setView('home')}>
+          <button className="brand" type="button" onClick={navigateHome}>
             <span className="logo">
               <HeartPulse size={24} />
             </span>
@@ -221,15 +243,17 @@ export default function App() {
               <span className="brand-sub">Dr. Giancarlo Muñoz Rennella · Cardiólogo Intervencionista</span>
             </span>
           </button>
-          <button className="icon-btn" type="button" onClick={() => setView('home')} aria-label="Ir al inicio">
-            {view === 'home' ? <Menu size={22} /> : <Home size={22} />}
-          </button>
+          {view !== 'home' && (
+            <button className="icon-btn" type="button" onClick={navigateHome} aria-label="Ir al inicio">
+              <Home size={22} />
+            </button>
+          )}
         </div>
       </header>
 
       <main className="container">
         {view === 'home' ? (
-          <HomeView onSelect={setView} />
+          <HomeView onSelect={navigateTo} />
         ) : (
           <SectionView
             section={currentSection}
@@ -239,7 +263,7 @@ export default function App() {
             medications={medications}
             editingMedicationId={editingMedicationId}
             pressureRecords={pressureRecords}
-            onBack={() => setView('home')}
+            onBack={navigateHome}
             onChange={updateField}
             onSaveSymptom={saveSymptom}
             onSaveMedication={saveMedication}
