@@ -323,6 +323,7 @@ input:focus, select:focus, textarea:focus {
 
 .med-card h3 { margin: 0; font-size: 19px; }
 .med-card p { margin: 6px 0 0; color: #475569; }
+.card-action { margin-top: 14px; }
 
 .row {
   display: grid;
@@ -406,4 +407,12 @@ input:focus, select:focus, textarea:focus {
 
 @media (min-width: 620px) {
   .summary-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 520px) {
+  .brand-sub {
+    max-width: 205px;
+    display: block;
+    line-height: 1.25;
+  }
 }

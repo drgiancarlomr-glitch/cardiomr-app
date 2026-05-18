@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardList,
+  Edit3,
   HeartPulse,
   Home,
   Menu,
@@ -13,48 +14,53 @@ import {
   Pill,
   Phone,
   Stethoscope,
+  X,
 } from 'lucide-react';
 
 const sections = [
   {
     id: 'symptoms',
-    title: 'Registrar sintomas',
-    text: 'Anota molestias, intensidad y contexto para tu proxima consulta.',
+    title: 'Registrar síntomas',
+    text: 'Anota molestias, intensidad y contexto para tu próxima consulta.',
     icon: ClipboardList,
     tone: 'red',
   },
   {
     id: 'meds',
-    title: 'Medicacion',
+    title: 'Medicación',
     text: 'Revisa indicaciones frecuentes y marca tus tomas importantes.',
     icon: Pill,
   },
   {
     id: 'controls',
     title: 'Controles',
-    text: 'Organiza presion, pulso y proximas citas cardiologicas.',
+    text: 'Organiza presión, pulso y próximas citas cardiológicas.',
     icon: Activity,
   },
   {
     id: 'urgent',
-    title: 'Senales de alerta',
-    text: 'Identifica cuando corresponde buscar ayuda inmediata.',
+    title: 'Señales de alerta',
+    text: 'Identifica cuándo corresponde buscar ayuda inmediata.',
     icon: AlertTriangle,
     tone: 'red',
   },
 ];
 
 const alertSigns = [
-  'Dolor opresivo en el pecho que dura mas de 10 minutos.',
-  'Falta de aire intensa, desmayo o confusion.',
+  'Dolor opresivo en el pecho que dura más de 10 minutos.',
+  'Falta de aire intensa, desmayo o confusión.',
   'Palpitaciones sostenidas con mareo o debilidad marcada.',
-  'Hinchazon brusca de piernas o aumento rapido de peso.',
+  'Hinchazón brusca de piernas o aumento rápido de peso.',
 ];
+
+const emptyMedicationFields = { medName: '', medSchedule: '', medEffects: '' };
 
 export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
+  const [symptomRecords, setSymptomRecords] = useState([]);
   const [medications, setMedications] = useState([]);
+  const [editingMedicationId, setEditingMedicationId] = useState(null);
   const [pressureRecords, setPressureRecords] = useState([]);
   const [form, setForm] = useState({
     symptom: '',
@@ -67,7 +73,7 @@ export default function App() {
     arm: 'Brazo izquierdo',
     position: 'Sentado',
     restTime: '5 minutos',
-    pressureMoment: 'Manana',
+    pressureMoment: 'Mañana',
     pressureSymptoms: '',
     pressureMeds: '',
     pressureNotes: '',
@@ -88,8 +94,22 @@ export default function App() {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function saveRecord(event) {
+  function saveSymptom(event) {
     event.preventDefault();
+    if (!form.symptom.trim() && !form.notes.trim()) return;
+
+    setSymptomRecords((current) => [
+      {
+        id: crypto.randomUUID(),
+        symptom: form.symptom.trim() || 'Síntoma sin especificar',
+        intensity: form.intensity,
+        notes: form.notes.trim(),
+        date: new Date().toISOString().slice(0, 10),
+        time: new Date().toTimeString().slice(0, 5),
+      },
+      ...current,
+    ]);
+    setForm((current) => ({ ...current, symptom: '', intensity: 'Leve', notes: '' }));
     setSaved(true);
   }
 
@@ -97,17 +117,38 @@ export default function App() {
     event.preventDefault();
     if (!form.medName.trim() && !form.medSchedule.trim() && !form.medEffects.trim()) return;
 
-    setMedications((current) => [
-      {
-        id: crypto.randomUUID(),
-        name: form.medName.trim() || 'Medicacion sin nombre',
-        schedule: form.medSchedule.trim() || 'Horario no indicado',
-        effects: form.medEffects.trim(),
-      },
-      ...current,
-    ]);
-    setForm((current) => ({ ...current, medName: '', medSchedule: '', medEffects: '' }));
+    const medication = {
+      id: editingMedicationId || crypto.randomUUID(),
+      name: form.medName.trim() || 'Medicación sin nombre',
+      schedule: form.medSchedule.trim() || 'Horario no indicado',
+      effects: form.medEffects.trim(),
+    };
+
+    setMedications((current) => (
+      editingMedicationId
+        ? current.map((item) => (item.id === editingMedicationId ? medication : item))
+        : [medication, ...current]
+    ));
+    setForm((current) => ({ ...current, ...emptyMedicationFields }));
+    setEditingMedicationId(null);
     setSaved(true);
+  }
+
+  function editMedication(medication) {
+    setSaved(false);
+    setEditingMedicationId(medication.id);
+    setForm((current) => ({
+      ...current,
+      medName: medication.name,
+      medSchedule: medication.schedule,
+      medEffects: medication.effects,
+    }));
+  }
+
+  function cancelMedicationEdit() {
+    setSaved(false);
+    setEditingMedicationId(null);
+    setForm((current) => ({ ...current, ...emptyMedicationFields }));
   }
 
   function savePressureRecord(event) {
@@ -154,8 +195,8 @@ export default function App() {
               <HeartPulse size={24} />
             </span>
             <span>
-              <span className="brand-title">CardioMR</span>
-              <span className="brand-sub">Dr. Giancarlo Muñoz Rennella · Cardiologo Intervencionista</span>
+              <span className="brand-title">Cardio GM</span>
+              <span className="brand-sub">Dr. Giancarlo Muñoz Rennella · Cardiólogo Intervencionista</span>
             </span>
           </button>
           <button className="icon-btn" type="button" onClick={() => setView('home')} aria-label="Ir al inicio">
@@ -172,12 +213,16 @@ export default function App() {
             section={currentSection}
             form={form}
             saved={saved}
+            symptomRecords={symptomRecords}
             medications={medications}
+            editingMedicationId={editingMedicationId}
             pressureRecords={pressureRecords}
             onBack={() => setView('home')}
             onChange={updateField}
-            onSave={saveRecord}
+            onSaveSymptom={saveSymptom}
             onSaveMedication={saveMedication}
+            onEditMedication={editMedication}
+            onCancelMedicationEdit={cancelMedicationEdit}
             onSavePressureRecord={savePressureRecord}
           />
         )}
@@ -193,17 +238,17 @@ function HomeView({ onSelect }) {
         <div className="hero-content">
           <div className="badge">
             <Stethoscope size={15} />
-            App del paciente cardiologico
+            App del paciente cardiológico
           </div>
-          <h1>CardioMR</h1>
+          <h1>Cardio GM</h1>
           <h2>Dr. Giancarlo Muñoz Rennella</h2>
-          <h3>Cardiologo Intervencionista</h3>
+          <h3>Cardiólogo Intervencionista</h3>
           <p>
-            Lleva un registro simple de sintomas, controles, medicacion y senales de alerta para compartir informacion
-            mas ordenada con tu cardiologo.
+            Lleva un registro simple de síntomas, controles, medicación y señales de alerta para compartir información
+            más ordenada con tu cardiólogo.
           </p>
           <div className="hero-box">
-            Esta app no reemplaza una consulta medica. Ante sintomas intensos o nuevos, busca atencion inmediata.
+            Esta app no reemplaza una consulta médica. Ante síntomas intensos o nuevos, busca atención inmediata.
           </div>
         </div>
       </section>
@@ -232,12 +277,16 @@ function SectionView({
   section,
   form,
   saved,
+  symptomRecords,
   medications,
+  editingMedicationId,
   pressureRecords,
   onBack,
   onChange,
-  onSave,
+  onSaveSymptom,
   onSaveMedication,
+  onEditMedication,
+  onCancelMedicationEdit,
   onSavePressureRecord,
 }) {
   const Icon = section?.icon || ClipboardList;
@@ -250,47 +299,50 @@ function SectionView({
       </button>
 
       <section className="section-title">
-        <p className="eyebrow">CardioMR</p>
+        <p className="eyebrow">Cardio GM</p>
         <h1>{section?.title}</h1>
         <p>{section?.text}</p>
       </section>
 
       {section?.id === 'symptoms' && (
-        <form className="form-card" onSubmit={onSave}>
-          <label className="field">
-            <span>Sintoma principal</span>
-            <input name="symptom" value={form.symptom} onChange={onChange} placeholder="Ej. dolor, falta de aire" />
-          </label>
-          <label className="field">
-            <span>Intensidad</span>
-            <select name="intensity" value={form.intensity} onChange={onChange}>
-              <option>Leve</option>
-              <option>Moderada</option>
-              <option>Intensa</option>
-            </select>
-          </label>
-          <label className="field">
-            <span>Notas</span>
-            <textarea
-              name="notes"
-              value={form.notes}
-              onChange={onChange}
-              placeholder="Cuando empezo, que estabas haciendo, si mejoro con reposo..."
-            />
-          </label>
-          <button className="btn red full" type="submit">
-            <CheckCircle2 size={18} />
-            Guardar registro
-          </button>
-          {saved && <p className="success">Registro guardado en esta sesion.</p>}
-        </form>
+        <>
+          <form className="form-card" onSubmit={onSaveSymptom}>
+            <label className="field">
+              <span>Síntoma principal</span>
+              <input name="symptom" value={form.symptom} onChange={onChange} placeholder="Ej. dolor, falta de aire" />
+            </label>
+            <label className="field">
+              <span>Intensidad</span>
+              <select name="intensity" value={form.intensity} onChange={onChange}>
+                <option>Leve</option>
+                <option>Moderada</option>
+                <option>Intensa</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Notas</span>
+              <textarea
+                name="notes"
+                value={form.notes}
+                onChange={onChange}
+                placeholder="Cuándo empezó, qué estabas haciendo, si mejoró con reposo..."
+              />
+            </label>
+            <button className="btn red full" type="submit">
+              <CheckCircle2 size={18} />
+              Guardar síntoma
+            </button>
+            {saved && <p className="success">Síntoma guardado en esta sesión.</p>}
+          </form>
+          <SymptomRecords records={symptomRecords} />
+        </>
       )}
 
       {section?.id === 'meds' && (
         <>
           <form className="form-card" onSubmit={onSaveMedication}>
             <label className="field">
-              <span>Medicacion que toma</span>
+              <span>Medicación que toma</span>
               <input
                 name="medName"
                 value={form.medName}
@@ -313,20 +365,30 @@ function SectionView({
                 name="medEffects"
                 value={form.medEffects}
                 onChange={onChange}
-                placeholder="Ej. mareo, tos, cansancio, hinchazon..."
+                placeholder="Ej. mareo, tos, cansancio, hinchazón..."
               />
             </label>
             <button className="btn primary full" type="submit">
               <Pill size={18} />
-              Agregar medicacion
+              {editingMedicationId ? 'Guardar cambios' : 'Agregar medicación'}
             </button>
-            {saved && <p className="success">Medicacion agregada en esta sesion.</p>}
+            {editingMedicationId && (
+              <button className="btn light full" type="button" onClick={onCancelMedicationEdit}>
+                <X size={18} />
+                Cancelar edición
+              </button>
+            )}
+            {saved && (
+              <p className="success">
+                {editingMedicationId ? 'Cambios guardados.' : 'Medicación guardada en esta sesión.'}
+              </p>
+            )}
           </form>
 
           <div className="grid">
             {medications.length === 0 ? (
               <article className="med-card">
-                <h3>Sin medicacion cargada todavia.</h3>
+                <h3>Sin medicación cargada todavía.</h3>
                 <p>Agrega cada medicamento con su horario y cualquier efecto secundario que el paciente note.</p>
               </article>
             ) : (
@@ -335,13 +397,17 @@ function SectionView({
                   <h3>{medication.name}</h3>
                   <p><strong>Horario:</strong> {medication.schedule}</p>
                   <p><strong>Efectos secundarios:</strong> {medication.effects || 'No registrados'}</p>
+                  <button className="btn soft full card-action" type="button" onClick={() => onEditMedication(medication)}>
+                    <Edit3 size={18} />
+                    Editar medicación
+                  </button>
                 </article>
               ))
             )}
           </div>
 
           <div className="warning">
-            No suspender ni cambiar dosis sin indicacion medica. Llevar esta lista actualizada a cada control.
+            No suspender ni cambiar dosis sin indicación médica. Llevar esta lista actualizada a cada control.
           </div>
         </>
       )}
@@ -362,11 +428,11 @@ function SectionView({
 
             <div className="row three">
               <label className="field">
-                <span>Sistolica</span>
+                <span>Sistólica</span>
                 <input name="systolic" inputMode="numeric" value={form.systolic} onChange={onChange} placeholder="120" />
               </label>
               <label className="field">
-                <span>Diastolica</span>
+                <span>Diastólica</span>
                 <input name="diastolic" inputMode="numeric" value={form.diastolic} onChange={onChange} placeholder="80" />
               </label>
               <label className="field">
@@ -377,9 +443,9 @@ function SectionView({
 
             <div className="row two">
               <label className="field">
-                <span>Momento del dia</span>
+                <span>Momento del día</span>
                 <select name="pressureMoment" value={form.pressureMoment} onChange={onChange}>
-                  <option>Manana</option>
+                  <option>Mañana</option>
                   <option>Tarde</option>
                   <option>Noche</option>
                   <option>Madrugada</option>
@@ -397,7 +463,7 @@ function SectionView({
 
             <div className="row two">
               <label className="field">
-                <span>Posicion</span>
+                <span>Posición</span>
                 <select name="position" value={form.position} onChange={onChange}>
                   <option>Sentado</option>
                   <option>Acostado</option>
@@ -410,13 +476,13 @@ function SectionView({
                   <option>Sin reposo</option>
                   <option>5 minutos</option>
                   <option>10 minutos</option>
-                  <option>Mas de 10 minutos</option>
+                  <option>Más de 10 minutos</option>
                 </select>
               </label>
             </div>
 
             <label className="field">
-              <span>Sintomas al momento de medir</span>
+              <span>Síntomas al momento de medir</span>
               <textarea
                 name="pressureSymptoms"
                 value={form.pressureSymptoms}
@@ -425,7 +491,7 @@ function SectionView({
               />
             </label>
             <label className="field">
-              <span>Medicacion tomada antes de la medicion</span>
+              <span>Medicación tomada antes de la medición</span>
               <input
                 name="pressureMeds"
                 value={form.pressureMeds}
@@ -439,15 +505,15 @@ function SectionView({
                 name="pressureNotes"
                 value={form.pressureNotes}
                 onChange={onChange}
-                placeholder="Actividad previa, estres, cafe, comida, ejercicio o cualquier dato relevante."
+                placeholder="Actividad previa, estrés, café, comida, ejercicio o cualquier dato relevante."
               />
             </label>
 
             <button className="btn primary full" type="submit">
               <CalendarDays size={18} />
-              Guardar medicion de presion
+              Guardar medición de presión
             </button>
-            {saved && <p className="success">Medicion guardada en esta sesion.</p>}
+            {saved && <p className="success">Medición guardada en esta sesión.</p>}
           </form>
 
           <PressureRecords records={pressureRecords} />
@@ -458,7 +524,7 @@ function SectionView({
         <div className="grid">
           <div className="alert-box">
             <Icon size={28} />
-            <h2>Busca ayuda de emergencia si aparece una senal intensa o repentina.</h2>
+            <h2>Busca ayuda de emergencia si aparece una señal intensa o repentina.</h2>
           </div>
           {alertSigns.map((text) => (
             <div className="item" key={text}>
@@ -470,13 +536,43 @@ function SectionView({
             <Phone size={18} />
             Llamar emergencias
           </a>
-          <a className="btn light full" href="https://wa.me/" target="_blank" rel="noreferrer">
+          <a className="btn light full" href="https://wa.me/593986426990" target="_blank" rel="noreferrer">
             <MessageCircle size={18} />
-            Abrir WhatsApp
+            Escribir al consultorio por WhatsApp
           </a>
         </div>
       )}
     </>
+  );
+}
+
+function SymptomRecords({ records }) {
+  return (
+    <section className="grid">
+      {records.length === 0 ? (
+        <article className="med-card">
+          <h3>Sin síntomas cargados todavía.</h3>
+          <p>Los síntomas guardados aparecerán acá para revisar la evolución antes de la consulta.</p>
+        </article>
+      ) : (
+        records.map((record, index) => (
+          <article className="med-card" key={record.id}>
+            <div className="control-card-head">
+              <div>
+                <span>Registro {records.length - index}</span>
+                <h3>{record.symptom}</h3>
+              </div>
+              <strong>{record.intensity}</strong>
+            </div>
+            <div className="control-meta">
+              <span>{record.date}</span>
+              <span>{record.time}</span>
+            </div>
+            <p><strong>Notas:</strong> {record.notes || 'Sin notas'}</p>
+          </article>
+        ))
+      )}
+    </section>
   );
 }
 
@@ -490,20 +586,20 @@ function PressureRecords({ records }) {
         <article className="stat-card">
           <span>Mediciones</span>
           <strong>{records.length}</strong>
-          <p>de {expectedFor15Days} si es cada 8 horas por 15 dias</p>
+          <p>de {expectedFor15Days} si es cada 8 horas por 15 días</p>
         </article>
         <article className="stat-card">
-          <span>Ultima presion</span>
+          <span>Última presión</span>
           <strong>{latest ? `${latest.systolic || '-'} / ${latest.diastolic || '-'}` : '-- / --'}</strong>
-          <p>{latest ? `${latest.date} ${latest.time}` : 'Sin registros todavia'}</p>
+          <p>{latest ? `${latest.date} ${latest.time}` : 'Sin registros todavía'}</p>
         </article>
       </div>
 
       {records.length === 0 ? (
         <article className="med-card">
-          <h3>Sin controles cargados todavia.</h3>
+          <h3>Sin controles cargados todavía.</h3>
           <p>
-            Cada medicion guardada va a aparecer aca. Para controles cada 8 horas por 15 dias, la lista puede crecer
+            Cada medición guardada va a aparecer acá. Para controles cada 8 horas por 15 días, la lista puede crecer
             hasta 45 registros sin cambiar de pantalla.
           </p>
         </article>
@@ -512,7 +608,7 @@ function PressureRecords({ records }) {
           <article className="control-card" key={record.id}>
             <div className="control-card-head">
               <div>
-                <span>Medicion {records.length - index}</span>
+                <span>Medición {records.length - index}</span>
                 <h3>{record.systolic || '-'} / {record.diastolic || '-'} mmHg</h3>
               </div>
               <strong>{record.pulse || '-'} lpm</strong>
@@ -525,16 +621,16 @@ function PressureRecords({ records }) {
               <span>{record.position}</span>
               <span>Reposo: {record.restTime}</span>
             </div>
-            <p><strong>Sintomas:</strong> {record.symptoms || 'No registrados'}</p>
-            <p><strong>Medicacion previa:</strong> {record.meds || 'No registrada'}</p>
+            <p><strong>Síntomas:</strong> {record.symptoms || 'No registrados'}</p>
+            <p><strong>Medicación previa:</strong> {record.meds || 'No registrada'}</p>
             <p><strong>Observaciones:</strong> {record.notes || 'Sin observaciones'}</p>
           </article>
         ))
       )}
 
       <div className="warning">
-        Si una medicion sale muy alta o se acompana de dolor de pecho, falta de aire, deficit neurologico, desmayo o
-        sintomas intensos, no esperar al proximo control.
+        Si una medición sale muy alta o se acompaña de dolor de pecho, falta de aire, déficit neurológico, desmayo o
+        síntomas intensos, no esperar al próximo control.
       </div>
     </section>
   );
