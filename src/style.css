@@ -127,16 +127,12 @@ button, input, textarea, select {
 }
 
 .hero-logo {
-  width: clamp(132px, 24vw, 190px);
-  flex: 0 0 auto;
-  filter: drop-shadow(0 18px 24px rgba(2,6,23,.35));
-  opacity: .96;
-}
-
-.hero-logo svg {
   display: block;
-  width: 100%;
+  width: clamp(150px, 28vw, 230px);
   height: auto;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 24px rgba(2,6,23,.32));
 }
 
 .hero h2 {
@@ -441,7 +437,7 @@ input:focus, select:focus, textarea:focus {
   }
 
   .hero-logo {
-    width: 112px;
+    width: 128px;
   }
 }
 

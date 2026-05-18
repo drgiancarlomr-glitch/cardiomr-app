@@ -307,32 +307,7 @@ function HomeView({ onSelect }) {
 
 function CardioGmLogo() {
   return (
-    <div className="hero-logo" aria-label="Logo Cardio GM">
-      <svg viewBox="0 0 260 150" role="img" aria-hidden="true">
-        <path
-          d="M16 84h30l6-18 7 39 8-31 8 10h36"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M118 48c-20-27-65-20-82 10-23 41 23 75 82 103 58-28 104-62 82-103-17-30-62-37-82-10z"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M112 91c0-38 33-68 81-68 17 0 31 4 43 11-13-17-33-27-57-27-57 0-98 38-98 85 0 45 37 79 94 79 18 0 35-4 49-11-11 4-23 6-37 6-45 0-75-30-75-75z"
-          fill="#172554"
-          opacity=".82"
-        />
-        <text x="123" y="105" fill="#fff" fontFamily="Georgia, serif" fontSize="82" fontWeight="700">GM</text>
-      </svg>
-    </div>
+    <img className="hero-logo" src="/cardio-gm-logo.png" alt="Logo Cardio GM" />
   );
 }
 
