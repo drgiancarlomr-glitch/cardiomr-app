@@ -58,8 +58,20 @@ button, input, textarea, select {
   box-shadow: 0 4px 14px rgba(185,28,28,.25);
 }
 
-.brand-title { font-weight: 900; font-size: 15px; }
-.brand-sub { font-weight: 700; color: #64748b; font-size: 11px; }
+.brand-title {
+  display: block;
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.15;
+}
+.brand-sub {
+  display: block;
+  margin-top: 4px;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.25;
+}
 
 .icon-btn {
   width: 42px;
