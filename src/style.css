@@ -322,11 +322,18 @@ input:focus, select:focus, textarea:focus {
 
 .item {
   display: flex;
+  align-items: flex-start;
   gap: 12px;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 24px;
   padding: 16px;
+}
+
+.item svg {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
 }
 
 .item p { margin: 0; line-height: 1.55; color: #334155; }
