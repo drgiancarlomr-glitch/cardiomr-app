@@ -671,7 +671,7 @@ function SectionView({
             <Phone size={18} />
             Llamar emergencias
           </a>
-          <a className="btn light full" href="https://wa.me/593986426990" target="_blank" rel="noreferrer">
+          <a className="btn whatsapp full" href="https://wa.me/593986426990" target="_blank" rel="noreferrer">
             <MessageCircle size={18} />
             Escribir al consultorio por WhatsApp
           </a>

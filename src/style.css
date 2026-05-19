@@ -255,6 +255,11 @@ button, input, textarea, select {
 .btn.red { background: #b91c1c; color: white; }
 .btn.light { background: white; color: #020617; border: 1px solid #e2e8f0; }
 .btn.soft { background: #e2e8f0; color: #020617; }
+.btn.whatsapp {
+  background: #16a34a;
+  color: white;
+  box-shadow: 0 10px 24px rgba(22,163,74,.18);
+}
 .btn.full { width: 100%; }
 
 .form-card, .info-card {
