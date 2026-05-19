@@ -195,6 +195,14 @@ export default function App() {
     setForm((current) => ({ ...current, ...emptyMedicationFields }));
   }
 
+  function deleteMedication(medicationId) {
+    setMedications((current) => current.filter((item) => item.id !== medicationId));
+    if (editingMedicationId === medicationId) {
+      cancelMedicationEdit();
+    }
+    setSaved(false);
+  }
+
   function savePressureRecord(event) {
     event.preventDefault();
     const hasPressure = form.systolic.trim() || form.diastolic.trim() || form.pulse.trim();
@@ -298,6 +306,7 @@ export default function App() {
             onSaveSymptom={saveSymptom}
             onSaveMedication={saveMedication}
             onEditMedication={editMedication}
+            onDeleteMedication={deleteMedication}
             onCancelMedicationEdit={cancelMedicationEdit}
             onSavePressureRecord={savePressureRecord}
             onPrintPatientReport={printPatientReport}
@@ -376,6 +385,7 @@ function SectionView({
   onSaveSymptom,
   onSaveMedication,
   onEditMedication,
+  onDeleteMedication,
   onCancelMedicationEdit,
   onSavePressureRecord,
   onPrintPatientReport,
@@ -491,6 +501,10 @@ function SectionView({
                   <button className="btn soft full card-action" type="button" onClick={() => onEditMedication(medication)}>
                     <Edit3 size={18} />
                     Editar medicación
+                  </button>
+                  <button className="btn light full card-action" type="button" onClick={() => onDeleteMedication(medication.id)}>
+                    <X size={18} />
+                    Eliminar medicación
                   </button>
                 </article>
               ))
