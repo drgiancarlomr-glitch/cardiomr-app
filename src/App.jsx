@@ -69,6 +69,7 @@ export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
   const [symptomRecords, setSymptomRecords] = useState(() => loadSavedRecords().symptomRecords || []);
+  const [editingSymptomId, setEditingSymptomId] = useState(null);
   const [medications, setMedications] = useState(() => loadSavedRecords().medications || []);
   const [editingMedicationId, setEditingMedicationId] = useState(null);
   const [pressureRecords, setPressureRecords] = useState(() => loadSavedRecords().pressureRecords || []);
@@ -142,19 +143,52 @@ export default function App() {
     event.preventDefault();
     if (!form.symptom.trim() && !form.notes.trim()) return;
 
-    setSymptomRecords((current) => [
-      {
-        id: crypto.randomUUID(),
-        symptom: form.symptom.trim() || 'Síntoma sin especificar',
-        intensity: form.intensity,
-        notes: form.notes.trim(),
-        date: new Date().toISOString().slice(0, 10),
-        time: new Date().toTimeString().slice(0, 5),
-      },
-      ...current,
-    ]);
+    const symptomRecord = {
+      id: editingSymptomId || crypto.randomUUID(),
+      symptom: form.symptom.trim() || 'Síntoma sin especificar',
+      intensity: form.intensity,
+      notes: form.notes.trim(),
+      date: editingSymptomId ? undefined : new Date().toISOString().slice(0, 10),
+      time: editingSymptomId ? undefined : new Date().toTimeString().slice(0, 5),
+    };
+
+    setSymptomRecords((current) => (
+      editingSymptomId
+        ? current.map((item) => (
+            item.id === editingSymptomId
+              ? { ...item, ...symptomRecord, date: item.date, time: item.time }
+              : item
+          ))
+        : [symptomRecord, ...current]
+    ));
     setForm((current) => ({ ...current, symptom: '', intensity: 'Leve', notes: '' }));
+    setEditingSymptomId(null);
     setSaved(true);
+  }
+
+  function editSymptom(record) {
+    setSaved(false);
+    setEditingSymptomId(record.id);
+    setForm((current) => ({
+      ...current,
+      symptom: record.symptom,
+      intensity: record.intensity,
+      notes: record.notes,
+    }));
+  }
+
+  function cancelSymptomEdit() {
+    setSaved(false);
+    setEditingSymptomId(null);
+    setForm((current) => ({ ...current, symptom: '', intensity: 'Leve', notes: '' }));
+  }
+
+  function deleteSymptom(recordId) {
+    setSymptomRecords((current) => current.filter((item) => item.id !== recordId));
+    if (editingSymptomId === recordId) {
+      cancelSymptomEdit();
+    }
+    setSaved(false);
   }
 
   function saveMedication(event) {
@@ -297,6 +331,7 @@ export default function App() {
             form={form}
             saved={saved}
             symptomRecords={symptomRecords}
+            editingSymptomId={editingSymptomId}
             medications={medications}
             editingMedicationId={editingMedicationId}
             pressureRecords={pressureRecords}
@@ -304,6 +339,9 @@ export default function App() {
             onBack={navigateHome}
             onChange={updateField}
             onSaveSymptom={saveSymptom}
+            onEditSymptom={editSymptom}
+            onDeleteSymptom={deleteSymptom}
+            onCancelSymptomEdit={cancelSymptomEdit}
             onSaveMedication={saveMedication}
             onEditMedication={editMedication}
             onDeleteMedication={deleteMedication}
@@ -376,6 +414,7 @@ function SectionView({
   form,
   saved,
   symptomRecords,
+  editingSymptomId,
   medications,
   editingMedicationId,
   pressureRecords,
@@ -383,6 +422,9 @@ function SectionView({
   onBack,
   onChange,
   onSaveSymptom,
+  onEditSymptom,
+  onDeleteSymptom,
+  onCancelSymptomEdit,
   onSaveMedication,
   onEditMedication,
   onDeleteMedication,
@@ -431,11 +473,17 @@ function SectionView({
             </label>
             <button className="btn red full" type="submit">
               <CheckCircle2 size={18} />
-              Guardar síntoma
+              {editingSymptomId ? 'Guardar cambios' : 'Guardar síntoma'}
             </button>
+            {editingSymptomId && (
+              <button className="btn light full" type="button" onClick={onCancelSymptomEdit}>
+                <X size={18} />
+                Cancelar edición
+              </button>
+            )}
             {saved && <p className="success">Síntoma guardado en esta sesión.</p>}
           </form>
-          <SymptomRecords records={symptomRecords} />
+          <SymptomRecords records={symptomRecords} onEdit={onEditSymptom} onDelete={onDeleteSymptom} />
         </>
       )}
 
@@ -794,7 +842,7 @@ function PatientReport({ medications, pressureRecords, glucoseRecords }) {
   );
 }
 
-function SymptomRecords({ records }) {
+function SymptomRecords({ records, onEdit, onDelete }) {
   return (
     <section className="grid">
       {records.length === 0 ? (
@@ -817,6 +865,14 @@ function SymptomRecords({ records }) {
               <span>{record.time}</span>
             </div>
             <p><strong>Notas:</strong> {record.notes || 'Sin notas'}</p>
+            <button className="btn soft full card-action" type="button" onClick={() => onEdit(record)}>
+              <Edit3 size={18} />
+              Editar síntoma
+            </button>
+            <button className="btn light full card-action" type="button" onClick={() => onDelete(record.id)}>
+              <X size={18} />
+              Eliminar síntoma
+            </button>
           </article>
         ))
       )}
