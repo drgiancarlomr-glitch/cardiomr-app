@@ -339,6 +339,11 @@ export default function App() {
     setSaved(false);
   }
 
+  function deleteGlucoseRecord(recordId) {
+    setGlucoseRecords((current) => current.filter((record) => record.id !== recordId));
+    setSaved(false);
+  }
+
   function printPatientReport() {
     window.print();
   }
@@ -391,6 +396,7 @@ export default function App() {
             onCancelMedicationEdit={cancelMedicationEdit}
             onSavePressureRecord={savePressureRecord}
             onDeletePressureRecord={deletePressureRecord}
+            onDeleteGlucoseRecord={deleteGlucoseRecord}
             onDeleteBmiRecord={deleteBmiRecord}
             onPrintPatientReport={printPatientReport}
           />
@@ -482,6 +488,7 @@ function SectionView({
   onCancelMedicationEdit,
   onSavePressureRecord,
   onDeletePressureRecord,
+  onDeleteGlucoseRecord,
   onDeleteBmiRecord,
   onPrintPatientReport,
 }) {
@@ -761,7 +768,7 @@ function SectionView({
           </form>
 
           <PressureRecords records={pressureRecords} onDelete={onDeletePressureRecord} />
-          <GlucoseRecords records={glucoseRecords} />
+          <GlucoseRecords records={glucoseRecords} onDelete={onDeleteGlucoseRecord} />
           <BmiRecords records={bmiRecords} onDelete={onDeleteBmiRecord} />
 
           <button className="btn red full" type="button" onClick={onPrintPatientReport}>
@@ -979,7 +986,7 @@ function SymptomRecords({ records, onEdit, onDelete }) {
   );
 }
 
-function GlucoseRecords({ records }) {
+function GlucoseRecords({ records, onDelete }) {
   const latest = records[0];
 
   return (
@@ -1017,6 +1024,10 @@ function GlucoseRecords({ records }) {
               <span>{record.time}</span>
             </div>
             <p><strong>Notas:</strong> {record.notes || 'Sin notas'}</p>
+            <button className="btn light full card-action" type="button" onClick={() => onDelete(record.id)}>
+              <X size={18} />
+              Eliminar glucosa
+            </button>
           </article>
         ))
       )}
