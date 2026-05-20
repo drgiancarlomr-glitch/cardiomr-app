@@ -65,6 +65,15 @@ function loadSavedRecords() {
   }
 }
 
+function savePatientNameImmediately(nextName) {
+  try {
+    const currentRecords = loadSavedRecords();
+    localStorage.setItem(storageKey, JSON.stringify({ ...currentRecords, patientName: nextName }));
+  } catch {
+    // If storage is unavailable, React state still keeps the value for the current session.
+  }
+}
+
 function getBmiCategory(bmi) {
   if (bmi < 18.5) return 'Bajo peso';
   if (bmi < 25) return 'Normal';
@@ -138,6 +147,11 @@ export default function App() {
     setSaved(false);
     setView('home');
     window.history.replaceState({ view: 'home' }, '', window.location.pathname);
+  }
+
+  function updatePatientName(nextName) {
+    setPatientName(nextName);
+    savePatientNameImmediately(nextName);
   }
 
   function updateField(event) {
@@ -369,7 +383,7 @@ export default function App() {
           <HomeView
             patientName={patientName}
             latestBmi={bmiRecords[0]}
-            onPatientNameChange={setPatientName}
+            onPatientNameChange={updatePatientName}
             onSelect={navigateTo}
           />
         ) : (
