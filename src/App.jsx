@@ -65,6 +65,13 @@ function loadSavedRecords() {
   }
 }
 
+function getBmiCategory(bmi) {
+  if (bmi < 18.5) return 'Bajo peso';
+  if (bmi < 25) return 'Normal';
+  if (bmi < 30) return 'Sobrepeso';
+  return 'Obesidad';
+}
+
 export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
@@ -74,6 +81,7 @@ export default function App() {
   const [editingMedicationId, setEditingMedicationId] = useState(null);
   const [pressureRecords, setPressureRecords] = useState(() => loadSavedRecords().pressureRecords || []);
   const [glucoseRecords, setGlucoseRecords] = useState(() => loadSavedRecords().glucoseRecords || []);
+  const [bmiRecords, setBmiRecords] = useState(() => loadSavedRecords().bmiRecords || []);
   const [form, setForm] = useState({
     symptom: '',
     intensity: 'Leve',
@@ -92,6 +100,8 @@ export default function App() {
     glucoseValue: '',
     glucoseType: 'Ayunas',
     glucoseNotes: '',
+    weight: '',
+    height: '',
     medName: '',
     medSchedule: '',
     medEffects: '',
@@ -117,9 +127,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ symptomRecords, medications, pressureRecords, glucoseRecords }),
+      JSON.stringify({ symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords }),
     );
-  }, [symptomRecords, medications, pressureRecords, glucoseRecords]);
+  }, [symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords]);
 
   function navigateTo(nextView) {
     setSaved(false);
@@ -241,7 +251,8 @@ export default function App() {
     event.preventDefault();
     const hasPressure = form.systolic.trim() || form.diastolic.trim() || form.pulse.trim();
     const hasGlucose = form.glucoseValue.trim();
-    if (!hasPressure && !hasGlucose) return;
+    const hasBmi = form.weight.trim() && form.height.trim();
+    if (!hasPressure && !hasGlucose && !hasBmi) return;
 
     const date = form.pressureDate || new Date().toISOString().slice(0, 10);
     const time = form.pressureTime || new Date().toTimeString().slice(0, 5);
@@ -281,6 +292,28 @@ export default function App() {
       ]);
     }
 
+    if (hasBmi) {
+      const weight = Number(String(form.weight).replace(',', '.'));
+      const heightInput = Number(String(form.height).replace(',', '.'));
+      const heightInMeters = heightInput > 3 ? heightInput / 100 : heightInput;
+      const bmi = heightInMeters > 0 ? weight / (heightInMeters * heightInMeters) : 0;
+
+      if (weight > 0 && bmi > 0) {
+        setBmiRecords((current) => [
+          {
+            id: crypto.randomUUID(),
+            date,
+            time,
+            weight: form.weight.trim(),
+            height: form.height.trim(),
+            bmi: bmi.toFixed(1),
+            category: getBmiCategory(bmi),
+          },
+          ...current,
+        ]);
+      }
+    }
+
     setForm((current) => ({
       ...current,
       pressureTime: '',
@@ -293,12 +326,19 @@ export default function App() {
       glucoseValue: '',
       glucoseType: 'Ayunas',
       glucoseNotes: '',
+      weight: '',
+      height: '',
     }));
     setSaved(true);
   }
 
   function deletePressureRecord(recordId) {
     setPressureRecords((current) => current.filter((record) => record.id !== recordId));
+    setSaved(false);
+  }
+
+  function deleteBmiRecord(recordId) {
+    setBmiRecords((current) => current.filter((record) => record.id !== recordId));
     setSaved(false);
   }
 
@@ -341,6 +381,7 @@ export default function App() {
             editingMedicationId={editingMedicationId}
             pressureRecords={pressureRecords}
             glucoseRecords={glucoseRecords}
+            bmiRecords={bmiRecords}
             onBack={navigateHome}
             onChange={updateField}
             onSaveSymptom={saveSymptom}
@@ -353,11 +394,17 @@ export default function App() {
             onCancelMedicationEdit={cancelMedicationEdit}
             onSavePressureRecord={savePressureRecord}
             onDeletePressureRecord={deletePressureRecord}
+            onDeleteBmiRecord={deleteBmiRecord}
             onPrintPatientReport={printPatientReport}
           />
         )}
       </main>
-      <PatientReport medications={medications} pressureRecords={pressureRecords} glucoseRecords={glucoseRecords} />
+      <PatientReport
+        medications={medications}
+        pressureRecords={pressureRecords}
+        glucoseRecords={glucoseRecords}
+        bmiRecords={bmiRecords}
+      />
     </>
   );
 }
@@ -425,6 +472,7 @@ function SectionView({
   editingMedicationId,
   pressureRecords,
   glucoseRecords,
+  bmiRecords,
   onBack,
   onChange,
   onSaveSymptom,
@@ -437,6 +485,7 @@ function SectionView({
   onCancelMedicationEdit,
   onSavePressureRecord,
   onDeletePressureRecord,
+  onDeleteBmiRecord,
   onPrintPatientReport,
 }) {
   const Icon = section?.icon || ClipboardList;
@@ -693,6 +742,29 @@ function SectionView({
               />
             </label>
 
+            <div className="row two">
+              <label className="field">
+                <span>Peso</span>
+                <input
+                  name="weight"
+                  inputMode="decimal"
+                  value={form.weight}
+                  onChange={onChange}
+                  placeholder="Ej. 78 kg"
+                />
+              </label>
+              <label className="field">
+                <span>Talla</span>
+                <input
+                  name="height"
+                  inputMode="decimal"
+                  value={form.height}
+                  onChange={onChange}
+                  placeholder="Ej. 1.72 m o 172 cm"
+                />
+              </label>
+            </div>
+
             <button className="btn primary full" type="submit">
               <CalendarDays size={18} />
               Guardar control
@@ -702,10 +774,11 @@ function SectionView({
 
           <PressureRecords records={pressureRecords} onDelete={onDeletePressureRecord} />
           <GlucoseRecords records={glucoseRecords} />
+          <BmiRecords records={bmiRecords} onDelete={onDeleteBmiRecord} />
 
           <button className="btn red full" type="button" onClick={onPrintPatientReport}>
             <ClipboardList size={18} />
-            Generar PDF con medicación, presión y glucosa
+            Generar PDF con medicación, presión, glucosa e IMC
           </button>
         </>
       )}
@@ -736,7 +809,7 @@ function SectionView({
   );
 }
 
-function PatientReport({ medications, pressureRecords, glucoseRecords }) {
+function PatientReport({ medications, pressureRecords, glucoseRecords, bmiRecords }) {
   const generatedAt = new Date().toLocaleString('es-EC', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -845,6 +918,38 @@ function PatientReport({ medications, pressureRecords, glucoseRecords }) {
           </table>
         )}
       </article>
+
+      <article>
+        <h2>Registros de IMC</h2>
+        {bmiRecords.length === 0 ? (
+          <p>Sin controles de IMC registrados.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Peso</th>
+                <th>Talla</th>
+                <th>IMC</th>
+                <th>Categoría</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bmiRecords.map((record) => (
+                <tr key={record.id}>
+                  <td>{record.date}</td>
+                  <td>{record.time}</td>
+                  <td>{record.weight} kg</td>
+                  <td>{record.height}</td>
+                  <td>{record.bmi}</td>
+                  <td>{record.category}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </article>
     </section>
   );
 }
@@ -925,6 +1030,56 @@ function GlucoseRecords({ records }) {
               <span>{record.time}</span>
             </div>
             <p><strong>Notas:</strong> {record.notes || 'Sin notas'}</p>
+          </article>
+        ))
+      )}
+    </section>
+  );
+}
+
+function BmiRecords({ records, onDelete }) {
+  const latest = records[0];
+
+  return (
+    <section className="grid">
+      <div className="summary-grid">
+        <article className="stat-card">
+          <span>IMC</span>
+          <strong>{records.length}</strong>
+          <p>controles registrados</p>
+        </article>
+        <article className="stat-card">
+          <span>Último IMC</span>
+          <strong>{latest ? latest.bmi : '--'}</strong>
+          <p>{latest ? `${latest.category} · ${latest.date} ${latest.time}` : 'Sin registros todavía'}</p>
+        </article>
+      </div>
+
+      {records.length === 0 ? (
+        <article className="med-card">
+          <h3>Sin IMC cargado todavía.</h3>
+          <p>Ingresa peso y talla para calcular el índice de masa corporal y seguirlo en controles.</p>
+        </article>
+      ) : (
+        records.map((record, index) => (
+          <article className="control-card" key={record.id}>
+            <div className="control-card-head">
+              <div>
+                <span>IMC {records.length - index}</span>
+                <h3>{record.bmi}</h3>
+              </div>
+              <strong>{record.category}</strong>
+            </div>
+            <div className="control-meta">
+              <span>{record.date}</span>
+              <span>{record.time}</span>
+              <span>Peso: {record.weight} kg</span>
+              <span>Talla: {record.height}</span>
+            </div>
+            <button className="btn light full card-action" type="button" onClick={() => onDelete(record.id)}>
+              <X size={18} />
+              Eliminar IMC
+            </button>
           </article>
         ))
       )}
