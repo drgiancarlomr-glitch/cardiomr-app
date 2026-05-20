@@ -90,9 +90,6 @@ export default function App() {
     systolic: '',
     diastolic: '',
     pulse: '',
-    arm: 'Brazo izquierdo',
-    position: 'Sentado',
-    restTime: '5 minutos',
     pressureMoment: 'Mañana',
     pressureMeds: '',
     pressureNotes: '',
@@ -265,9 +262,6 @@ export default function App() {
           systolic: form.systolic.trim(),
           diastolic: form.diastolic.trim(),
           pulse: form.pulse.trim(),
-          arm: form.arm,
-          position: form.position,
-          restTime: form.restTime,
           moment: form.pressureMoment,
           meds: form.pressureMeds.trim(),
           notes: form.pressureNotes.trim(),
@@ -658,34 +652,6 @@ function SectionView({
                   <option>Madrugada</option>
                 </select>
               </label>
-              <label className="field">
-                <span>Brazo</span>
-                <select name="arm" value={form.arm} onChange={onChange}>
-                  <option>Brazo izquierdo</option>
-                  <option>Brazo derecho</option>
-                  <option>Ambos brazos</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="row two">
-              <label className="field">
-                <span>Posición</span>
-                <select name="position" value={form.position} onChange={onChange}>
-                  <option>Sentado</option>
-                  <option>Acostado</option>
-                  <option>De pie</option>
-                </select>
-              </label>
-              <label className="field">
-                <span>Reposo previo</span>
-                <select name="restTime" value={form.restTime} onChange={onChange}>
-                  <option>Sin reposo</option>
-                  <option>5 minutos</option>
-                  <option>10 minutos</option>
-                  <option>Más de 10 minutos</option>
-                </select>
-              </label>
             </div>
 
             <label className="field">
@@ -860,7 +826,7 @@ function PatientReport({ medications, pressureRecords, glucoseRecords, bmiRecord
                 <th>Hora</th>
                 <th>Presión</th>
                 <th>Pulso</th>
-                <th>Contexto</th>
+                <th>Momento</th>
                 <th>Observaciones</th>
               </tr>
             </thead>
@@ -871,7 +837,7 @@ function PatientReport({ medications, pressureRecords, glucoseRecords, bmiRecord
                   <td>{record.time}</td>
                   <td>{record.systolic || '-'} / {record.diastolic || '-'} mmHg</td>
                   <td>{record.pulse || '-'} lpm</td>
-                  <td>{record.moment}, {record.arm}, {record.position}, reposo: {record.restTime}</td>
+                  <td>{record.moment}</td>
                   <td>
                     Medicación previa: {record.meds || 'No registrada'}.
                     Observaciones: {record.notes || 'Sin observaciones'}.
@@ -1126,9 +1092,6 @@ function PressureRecords({ records, onDelete }) {
               <span>{record.date}</span>
               <span>{record.time}</span>
               <span>{record.moment}</span>
-              <span>{record.arm}</span>
-              <span>{record.position}</span>
-              <span>Reposo: {record.restTime}</span>
             </div>
             <p><strong>Medicación previa:</strong> {record.meds || 'No registrada'}</p>
             <p><strong>Observaciones:</strong> {record.notes || 'Sin observaciones'}</p>
