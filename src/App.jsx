@@ -403,6 +403,7 @@ export default function App() {
         )}
       </main>
       <PatientReport
+        patientName={patientName}
         medications={medications}
         pressureRecords={pressureRecords}
         glucoseRecords={glucoseRecords}
@@ -788,7 +789,7 @@ function SectionView({
   );
 }
 
-function PatientReport({ medications, pressureRecords, glucoseRecords, bmiRecords }) {
+function PatientReport({ patientName, medications, pressureRecords, glucoseRecords, bmiRecords }) {
   const generatedAt = new Date().toLocaleString('es-EC', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -802,6 +803,10 @@ function PatientReport({ medications, pressureRecords, glucoseRecords, bmiRecord
           <h2>Dr. Giancarlo Muñoz Rennella</h2>
           <p>Cardiólogo Intervencionista</p>
           <p>Resumen generado: {generatedAt}</p>
+          <div className="print-patient">
+            <span>Paciente</span>
+            <strong>{patientName?.trim() || 'Sin nombre registrado'}</strong>
+          </div>
         </div>
         <img src="/cardio-gm-logo.png" alt="Logo Cardio GM" />
       </header>

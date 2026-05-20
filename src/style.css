@@ -557,6 +557,31 @@ input:focus, select:focus, textarea:focus {
     object-fit: contain;
   }
 
+  .print-patient {
+    display: inline-block;
+    margin-top: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+  }
+
+  .print-patient span {
+    display: block;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .print-patient strong {
+    display: block;
+    margin-top: 4px;
+    color: #111827;
+    font-size: 18px;
+  }
+
   .print-report h1 {
     margin: 0;
     font-size: 30px;
