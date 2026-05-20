@@ -799,13 +799,19 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
     <section className="print-report" aria-label="Resumen para imprimir">
       <header>
         <div>
-          <h1>Cardio GM</h1>
-          <h2>Dr. Giancarlo Muñoz Rennella</h2>
-          <p>Cardiólogo Intervencionista</p>
-          <p>Resumen generado: {generatedAt}</p>
-          <div className="print-patient">
-            <span>Paciente</span>
-            <strong>{patientName?.trim() || 'Sin nombre registrado'}</strong>
+          <div className="print-title-row">
+            <div>
+              <h1>Cardio GM</h1>
+              <h2>Dr. Giancarlo Muñoz Rennella</h2>
+              <p>Cardiólogo Intervencionista</p>
+            </div>
+          </div>
+          <div className="print-meta-row">
+            <div className="print-patient">
+              <span>Paciente</span>
+              <strong>{patientName?.trim() || 'Sin nombre registrado'}</strong>
+            </div>
+            <p>Resumen generado: {generatedAt}</p>
           </div>
         </div>
         <img src="/cardio-gm-logo.png" alt="Logo Cardio GM" />
