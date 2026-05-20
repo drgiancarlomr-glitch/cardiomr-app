@@ -94,7 +94,6 @@ export default function App() {
     position: 'Sentado',
     restTime: '5 minutos',
     pressureMoment: 'Mañana',
-    pressureSymptoms: '',
     pressureMeds: '',
     pressureNotes: '',
     glucoseValue: '',
@@ -270,7 +269,6 @@ export default function App() {
           position: form.position,
           restTime: form.restTime,
           moment: form.pressureMoment,
-          symptoms: form.pressureSymptoms.trim(),
           meds: form.pressureMeds.trim(),
           notes: form.pressureNotes.trim(),
         },
@@ -320,7 +318,6 @@ export default function App() {
       systolic: '',
       diastolic: '',
       pulse: '',
-      pressureSymptoms: '',
       pressureMeds: '',
       pressureNotes: '',
       glucoseValue: '',
@@ -685,15 +682,6 @@ function SectionView({
             </div>
 
             <label className="field">
-              <span>Síntomas al momento de medir</span>
-              <textarea
-                name="pressureSymptoms"
-                value={form.pressureSymptoms}
-                onChange={onChange}
-                placeholder="Ej. dolor de cabeza, mareo, palpitaciones, falta de aire..."
-              />
-            </label>
-            <label className="field">
               <span>Medicación tomada antes de la medición</span>
               <input
                 name="pressureMeds"
@@ -866,7 +854,7 @@ function PatientReport({ medications, pressureRecords, glucoseRecords, bmiRecord
                 <th>Presión</th>
                 <th>Pulso</th>
                 <th>Contexto</th>
-                <th>Síntomas / observaciones</th>
+                <th>Observaciones</th>
               </tr>
             </thead>
             <tbody>
@@ -878,7 +866,6 @@ function PatientReport({ medications, pressureRecords, glucoseRecords, bmiRecord
                   <td>{record.pulse || '-'} lpm</td>
                   <td>{record.moment}, {record.arm}, {record.position}, reposo: {record.restTime}</td>
                   <td>
-                    Síntomas: {record.symptoms || 'No registrados'}.
                     Medicación previa: {record.meds || 'No registrada'}.
                     Observaciones: {record.notes || 'Sin observaciones'}.
                   </td>
@@ -1132,7 +1119,6 @@ function PressureRecords({ records, onDelete }) {
               <span>{record.position}</span>
               <span>Reposo: {record.restTime}</span>
             </div>
-            <p><strong>Síntomas:</strong> {record.symptoms || 'No registrados'}</p>
             <p><strong>Medicación previa:</strong> {record.meds || 'No registrada'}</p>
             <p><strong>Observaciones:</strong> {record.notes || 'Sin observaciones'}</p>
             <button className="btn light full card-action" type="button" onClick={() => onDelete(record.id)}>
