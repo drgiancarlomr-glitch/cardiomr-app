@@ -297,6 +297,11 @@ export default function App() {
     setSaved(true);
   }
 
+  function deletePressureRecord(recordId) {
+    setPressureRecords((current) => current.filter((record) => record.id !== recordId));
+    setSaved(false);
+  }
+
   function printPatientReport() {
     window.print();
   }
@@ -347,6 +352,7 @@ export default function App() {
             onDeleteMedication={deleteMedication}
             onCancelMedicationEdit={cancelMedicationEdit}
             onSavePressureRecord={savePressureRecord}
+            onDeletePressureRecord={deletePressureRecord}
             onPrintPatientReport={printPatientReport}
           />
         )}
@@ -430,6 +436,7 @@ function SectionView({
   onDeleteMedication,
   onCancelMedicationEdit,
   onSavePressureRecord,
+  onDeletePressureRecord,
   onPrintPatientReport,
 }) {
   const Icon = section?.icon || ClipboardList;
@@ -693,7 +700,7 @@ function SectionView({
             {saved && <p className="success">Control guardado en esta sesión.</p>}
           </form>
 
-          <PressureRecords records={pressureRecords} />
+          <PressureRecords records={pressureRecords} onDelete={onDeletePressureRecord} />
           <GlucoseRecords records={glucoseRecords} />
 
           <button className="btn red full" type="button" onClick={onPrintPatientReport}>
@@ -925,7 +932,7 @@ function GlucoseRecords({ records }) {
   );
 }
 
-function PressureRecords({ records }) {
+function PressureRecords({ records, onDelete }) {
   const latest = records[0];
   const expectedFor15Days = 45;
 
@@ -973,6 +980,10 @@ function PressureRecords({ records }) {
             <p><strong>Síntomas:</strong> {record.symptoms || 'No registrados'}</p>
             <p><strong>Medicación previa:</strong> {record.meds || 'No registrada'}</p>
             <p><strong>Observaciones:</strong> {record.notes || 'Sin observaciones'}</p>
+            <button className="btn light full card-action" type="button" onClick={() => onDelete(record.id)}>
+              <X size={18} />
+              Eliminar medición
+            </button>
           </article>
         ))
       )}
