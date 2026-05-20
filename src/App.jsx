@@ -75,6 +75,7 @@ function getBmiCategory(bmi) {
 export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
+  const [patientName, setPatientName] = useState(() => loadSavedRecords().patientName || '');
   const [symptomRecords, setSymptomRecords] = useState(() => loadSavedRecords().symptomRecords || []);
   const [editingSymptomId, setEditingSymptomId] = useState(null);
   const [medications, setMedications] = useState(() => loadSavedRecords().medications || []);
@@ -123,9 +124,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords }),
+      JSON.stringify({ patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords }),
     );
-  }, [symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords]);
+  }, [patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords]);
 
   function navigateTo(nextView) {
     setSaved(false);
@@ -365,7 +366,12 @@ export default function App() {
 
       <main className="container">
         {view === 'home' ? (
-          <HomeView onSelect={navigateTo} />
+          <HomeView
+            patientName={patientName}
+            latestBmi={bmiRecords[0]}
+            onPatientNameChange={setPatientName}
+            onSelect={navigateTo}
+          />
         ) : (
           <SectionView
             section={currentSection}
@@ -406,7 +412,7 @@ export default function App() {
   );
 }
 
-function HomeView({ onSelect }) {
+function HomeView({ patientName, latestBmi, onPatientNameChange, onSelect }) {
   return (
     <>
       <section className="hero">
@@ -427,8 +433,20 @@ function HomeView({ onSelect }) {
             Lleva un registro simple de síntomas, controles, medicación y señales de alerta para compartir información
             más ordenada con tu cardiólogo.
           </p>
-          <div className="hero-box">
-            Esta app no reemplaza una consulta médica. Ante síntomas intensos o nuevos, busca atención inmediata.
+          <div className="patient-hero-panel">
+            <label className="patient-name-field">
+              <span>Paciente</span>
+              <input
+                value={patientName}
+                onChange={(event) => onPatientNameChange(event.target.value)}
+                placeholder="Ingresar nombre"
+              />
+            </label>
+            <div className="patient-bmi-card">
+              <span>Último IMC</span>
+              <strong>{latestBmi ? latestBmi.bmi : '--'}</strong>
+              <p>{latestBmi ? latestBmi.category : 'Sin registro'}</p>
+            </div>
           </div>
         </div>
       </section>

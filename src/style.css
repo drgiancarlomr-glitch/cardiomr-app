@@ -177,6 +177,55 @@ button, input, textarea, select {
   color: rgba(255,255,255,.88);
 }
 
+.patient-hero-panel {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.patient-name-field,
+.patient-bmi-card {
+  border-radius: 24px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+  padding: 15px;
+}
+
+.patient-name-field span,
+.patient-bmi-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255,255,255,.68);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.patient-name-field input {
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255,255,255,.92);
+  color: #020617;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.patient-bmi-card strong {
+  display: block;
+  color: white;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.patient-bmi-card p {
+  margin: 7px 0 0;
+  color: rgba(255,255,255,.78);
+  font-weight: 800;
+}
+
 .grid {
   display: grid;
   gap: 13px;
@@ -464,6 +513,10 @@ input:focus, select:focus, textarea:focus {
   .hero-logo {
     width: 128px;
     transform: translateY(6px);
+  }
+
+  .patient-hero-panel {
+    grid-template-columns: 1fr;
   }
 }
 
