@@ -195,27 +195,26 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
 
   function addHeader() {
     decoratePage();
-    const logoSize = 92;
+    const logoSize = 94;
     const logoWidth = logoSize;
     const logoHeight = logoSize;
     const logoX = pageWidth - margin - logoWidth;
-    const textCenter = pageWidth / 2;
 
-    doc.addImage(logoDataUrl, 'PNG', logoX, 48, logoWidth, logoHeight);
+    doc.addImage(logoDataUrl, 'PNG', logoX, 50, logoWidth, logoHeight);
     doc.setTextColor(...slate);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(27);
-    doc.text('Cardio GM', textCenter, y, { align: 'center' });
+    doc.setFontSize(28);
+    doc.text('Cardio GM', margin, y);
     y += 28;
     doc.setTextColor(...navy);
     doc.setFontSize(16);
-    doc.text('Dr. Giancarlo Muñoz Rennella', textCenter, y, { align: 'center' });
+    doc.text('Dr. Giancarlo Muñoz Rennella', margin, y);
     y += 18;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
     doc.setTextColor(51, 65, 85);
-    doc.text('Cardiólogo Intervencionista', textCenter, y, { align: 'center' });
-    y = 138;
+    doc.text('Cardiólogo Intervencionista', margin, y);
+    y = 150;
 
     doc.setDrawColor(...navy);
     doc.setLineWidth(1.4);
@@ -248,7 +247,8 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   }
 
   function addSection(title) {
-    ensureSpace(42);
+    y += 10;
+    ensureSpace(54);
     doc.setTextColor(...navy);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(15);
@@ -267,23 +267,24 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     const prepared = lines.filter(Boolean);
     const estimatedHeight = prepared.reduce((total, line) => {
       doc.setFontSize(10);
-      return total + doc.splitTextToSize(line, contentWidth - 34).length * 15;
-    }, 34);
+      return total + doc.splitTextToSize(line, contentWidth - 38).length * 16;
+    }, 42);
     ensureSpace(estimatedHeight);
+    const boxTop = y - 6;
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(203, 213, 225);
-    doc.roundedRect(margin, y - 6, contentWidth, estimatedHeight, 8, 8, 'FD');
+    doc.roundedRect(margin, boxTop, contentWidth, estimatedHeight, 8, 8, 'FD');
     doc.setFillColor(...navy);
-    doc.roundedRect(margin, y - 6, 5, estimatedHeight, 3, 3, 'F');
+    doc.roundedRect(margin, boxTop, 5, estimatedHeight, 3, 3, 'F');
     y += 14;
     prepared.forEach((line, index) => {
       doc.setFont('helvetica', index === 0 ? 'bold' : 'normal');
       doc.setFontSize(index === 0 ? 11 : 10);
       doc.setTextColor(index === 0 ? slate[0] : 51, index === 0 ? slate[1] : 65, index === 0 ? slate[2] : 85);
-      writeWrapped(line, margin + 18, contentWidth - 36);
+      writeWrapped(line, margin + 20, contentWidth - 40);
       y += 2;
     });
-    y += 10;
+    y = boxTop + estimatedHeight + 16;
   }
 
   addHeader();
