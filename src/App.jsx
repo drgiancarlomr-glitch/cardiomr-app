@@ -737,25 +737,36 @@ export default function App() {
       const pdfBlob = await createPatientPdf({ patientName, medications, pressureRecords, glucoseRecords, bmiRecords });
       const dateLabel = new Date().toISOString().slice(0, 10);
       const fileName = `Cardio-GM-${cleanFileName(patientName)}-${dateLabel}.pdf`;
-      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
-      if (navigator.canShare?.({ files: [pdfFile] })) {
-        await navigator.share({
-          files: [pdfFile],
-          title: 'Resumen Cardio GM',
-          text: 'Resumen de medicación y controles para compartir.',
-        });
-        return;
+      if (typeof File !== 'undefined' && navigator.share && navigator.canShare) {
+        const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+        if (navigator.canShare({ files: [pdfFile] })) {
+          try {
+            await navigator.share({
+              files: [pdfFile],
+              title: 'Resumen Cardio GM',
+              text: 'Resumen de medicación y controles para compartir.',
+            });
+            return;
+          } catch (shareError) {
+            if (shareError?.name === 'AbortError') return;
+          }
+        }
       }
 
       const downloadUrl = URL.createObjectURL(pdfBlob);
       const downloadLink = document.createElement('a');
       downloadLink.href = downloadUrl;
       downloadLink.download = fileName;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
       downloadLink.click();
-      URL.revokeObjectURL(downloadUrl);
+      downloadLink.remove();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
       window.alert('Este navegador no permite compartir el PDF directamente. Se descargó el archivo para enviarlo por WhatsApp.');
     } catch (error) {
+      console.error(error);
       window.alert('No se pudo generar el PDF. Probá nuevamente.');
     } finally {
       setSharingReport(false);
