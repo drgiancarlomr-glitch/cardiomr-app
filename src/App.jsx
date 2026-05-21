@@ -149,6 +149,7 @@ function cleanFileName(value) {
 
 async function getImageDataUrl(path) {
   const response = await fetch(path);
+  if (!response.ok) throw new Error(`No se pudo cargar la imagen: ${path}`);
   const blob = await response.blob();
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -168,7 +169,12 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   const red = [190, 24, 45];
   const slate = [17, 24, 39];
   const generatedAt = new Date().toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
-  const logoDataUrl = await getImageDataUrl('/cardio-gm-logo.png');
+  let logoDataUrl = null;
+  try {
+    logoDataUrl = await getImageDataUrl('/cardio-gm-logo.png');
+  } catch (error) {
+    console.warn(error);
+  }
   let y = 78;
 
   function decoratePage() {
@@ -202,7 +208,9 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     const logoHeight = logoSize;
     const logoX = pageWidth - margin - logoWidth;
 
-    doc.addImage(logoDataUrl, 'PNG', logoX, 58, logoWidth, logoHeight);
+    if (logoDataUrl) {
+      doc.addImage(logoDataUrl, 'PNG', logoX, 58, logoWidth, logoHeight);
+    }
     doc.setTextColor(...slate);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(28);
@@ -429,11 +437,28 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   return doc.output('blob');
 }
 
+function ReportDownloadNotice({ reportDownload }) {
+  if (!reportDownload) return null;
+
+  return (
+    <div className="report-download">
+      <p>{reportDownload.message}</p>
+      {reportDownload.url && (
+        <a className="btn soft full" href={reportDownload.url} download={reportDownload.fileName}>
+          <ClipboardList size={18} />
+          Descargar PDF
+        </a>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
   const [urgentNotice, setUrgentNotice] = useState(null);
   const [sharingReport, setSharingReport] = useState(false);
+  const [reportDownload, setReportDownload] = useState(null);
   const [patientName, setPatientName] = useState(() => loadSavedRecords().patientName || '');
   const [symptomRecords, setSymptomRecords] = useState(() => loadSavedRecords().symptomRecords || []);
   const [editingSymptomId, setEditingSymptomId] = useState(null);
@@ -484,6 +509,12 @@ export default function App() {
       JSON.stringify({ patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords }),
     );
   }, [patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords]);
+
+  useEffect(() => {
+    return () => {
+      if (reportDownload?.url) URL.revokeObjectURL(reportDownload.url);
+    };
+  }, [reportDownload]);
 
   function navigateTo(nextView) {
     setSaved(false);
@@ -733,15 +764,24 @@ export default function App() {
 
   async function sharePatientReport() {
     setSharingReport(true);
+    setReportDownload(null);
     try {
       const pdfBlob = await createPatientPdf({ patientName, medications, pressureRecords, glucoseRecords, bmiRecords });
       const dateLabel = new Date().toISOString().slice(0, 10);
       const fileName = `Cardio-GM-${cleanFileName(patientName)}-${dateLabel}.pdf`;
+      const pdfFile = typeof File !== 'undefined'
+        ? new File([pdfBlob], fileName, { type: 'application/pdf' })
+        : null;
 
-      if (typeof File !== 'undefined' && navigator.share && navigator.canShare) {
-        const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      if (pdfFile && navigator.share && navigator.canShare) {
+        let canSharePdf = false;
+        try {
+          canSharePdf = navigator.canShare({ files: [pdfFile] });
+        } catch {
+          canSharePdf = false;
+        }
 
-        if (navigator.canShare({ files: [pdfFile] })) {
+        if (canSharePdf) {
           try {
             await navigator.share({
               files: [pdfFile],
@@ -756,6 +796,14 @@ export default function App() {
       }
 
       const downloadUrl = URL.createObjectURL(pdfBlob);
+      setReportDownload((current) => {
+        if (current?.url) URL.revokeObjectURL(current.url);
+        return {
+          url: downloadUrl,
+          fileName,
+          message: 'Tu navegador no permitio compartir el PDF directo. Descargalo y envialo por WhatsApp.',
+        };
+      });
       const downloadLink = document.createElement('a');
       downloadLink.href = downloadUrl;
       downloadLink.download = fileName;
@@ -763,7 +811,6 @@ export default function App() {
       document.body.appendChild(downloadLink);
       downloadLink.click();
       downloadLink.remove();
-      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
       window.alert('Este navegador no permite compartir el PDF directamente. Se descargó el archivo para enviarlo por WhatsApp.');
     } catch (error) {
       console.error(error);
@@ -831,6 +878,7 @@ export default function App() {
             onDeleteGlucoseRecord={deleteGlucoseRecord}
             onDeleteBmiRecord={deleteBmiRecord}
             sharingReport={sharingReport}
+            reportDownload={reportDownload}
             onSharePatientReport={sharePatientReport}
           />
         )}
@@ -939,6 +987,7 @@ function SectionView({
   onDeleteGlucoseRecord,
   onDeleteBmiRecord,
   sharingReport,
+  reportDownload,
   onSharePatientReport,
 }) {
   const Icon = section?.icon || ClipboardList;
@@ -1095,6 +1144,7 @@ function SectionView({
             <ClipboardList size={18} />
             {sharingReport ? 'Preparando PDF...' : 'Compartir PDF con medicación y controles'}
           </button>
+          <ReportDownloadNotice reportDownload={reportDownload} />
         </>
       )}
 
@@ -1194,6 +1244,7 @@ function SectionView({
             <ClipboardList size={18} />
             {sharingReport ? 'Preparando PDF...' : 'Compartir PDF con medicación y controles'}
           </button>
+          <ReportDownloadNotice reportDownload={reportDownload} />
         </>
       )}
 
