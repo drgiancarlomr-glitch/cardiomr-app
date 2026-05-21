@@ -134,15 +134,15 @@ button, input, textarea, select {
 .hero-brand-row {
   display: block;
   min-height: 122px;
-  padding-top: 14px;
+  padding-top: 26px;
   padding-right: clamp(170px, 30vw, 250px);
 }
 
 .hero-logo {
   display: block;
   position: absolute;
-  top: 46px;
-  right: 0;
+  top: 26px;
+  right: -8px;
   width: clamp(150px, 28vw, 230px);
   height: auto;
   object-fit: contain;
@@ -567,13 +567,13 @@ input:focus, select:focus, textarea:focus {
 
   .hero-brand-row {
     min-height: 82px;
-    padding-top: 8px;
+    padding-top: 14px;
     padding-right: 132px;
   }
 
   .hero-logo {
-    top: 48px;
-    right: 0;
+    top: 34px;
+    right: -4px;
     width: 128px;
   }
 
