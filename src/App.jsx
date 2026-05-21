@@ -55,12 +55,6 @@ const alertSigns = [
 const emptyMedicationFields = { medName: '', medSchedule: '', medEffects: '' };
 const storageKey = 'cardio-gm-patient-records';
 const consultorioWhatsapp = '593986426990';
-const contactFooter = {
-  place: 'Hospital Básico Rodríguez',
-  address: 'Libia Peñafiel y Mariana Cueva',
-  email: 'giancarlomrennella@gmail.com',
-  phone: '0986426990',
-};
 
 function loadSavedRecords() {
   try {
@@ -188,16 +182,6 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     doc.rect(32, 30, pageWidth - 64, 4, 'F');
     doc.setFillColor(...navy);
     doc.rect(32, 37, pageWidth - 64, 3, 'F');
-    doc.setDrawColor(203, 213, 225);
-    doc.setLineWidth(.6);
-    doc.line(margin, pageHeight - 62, pageWidth - margin, pageHeight - 62);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.2);
-    doc.setTextColor(71, 85, 105);
-    doc.text(`🏥 ${contactFooter.place}`, margin, pageHeight - 47);
-    doc.text(`📍 ${contactFooter.address}`, margin, pageHeight - 35);
-    doc.text(`✉️ ${contactFooter.email}`, pageWidth - margin, pageHeight - 47, { align: 'right' });
-    doc.text(`☎️ ${contactFooter.phone}`, pageWidth - margin, pageHeight - 35, { align: 'right' });
     doc.setFillColor(...navy);
     doc.rect(32, pageHeight - 24, pageWidth - 64, 1.4, 'F');
     doc.setFillColor(...red);
@@ -1413,16 +1397,6 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
         )}
       </article>
 
-      <footer className="print-footer">
-        <div>
-          <p><span aria-hidden="true">🏥</span>{contactFooter.place}</p>
-          <p><span aria-hidden="true">📍</span>{contactFooter.address}</p>
-        </div>
-        <div>
-          <p><span aria-hidden="true">✉️</span>{contactFooter.email}</p>
-          <p><span aria-hidden="true">☎️</span>{contactFooter.phone}</p>
-        </div>
-      </footer>
     </section>
   );
 }

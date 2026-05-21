@@ -723,39 +723,4 @@ input:focus, select:focus, textarea:focus {
     text-transform: uppercase;
   }
 
-  .print-footer {
-    margin-top: auto;
-    padding-top: 8px;
-    border-top: 1px solid #172554;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    align-items: start;
-    color: #475569;
-    font-size: 11px;
-    line-height: 1.25;
-  }
-
-  .print-footer p {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    margin: 2px 0;
-  }
-
-  .print-footer div:last-child {
-    justify-self: end;
-    text-align: right;
-  }
-
-  .print-footer div:last-child p {
-    justify-content: flex-end;
-  }
-
-  .print-footer span {
-    display: inline-block;
-    width: 18px;
-    font-size: 13px;
-    line-height: 1;
-  }
 }
