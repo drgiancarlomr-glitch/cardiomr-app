@@ -124,8 +124,6 @@ function buildPressureConsultMessage(record, patientName) {
     `Presión: ${record.systolic || '-'} / ${record.diastolic || '-'} mmHg`,
     `Frecuencia cardíaca: ${record.pulse || '-'} lpm`,
     `Fecha y hora: ${record.date} ${record.time}`,
-    record.moment ? `Momento: ${record.moment}` : '',
-    record.meds ? `Medicación previa: ${record.meds}` : '',
     record.notes ? `Observaciones: ${record.notes}` : '',
   ].filter(Boolean).join('\n');
 }
@@ -160,8 +158,6 @@ export default function App() {
     systolic: '',
     diastolic: '',
     pulse: '',
-    pressureMoment: 'Mañana',
-    pressureMeds: '',
     pressureNotes: '',
     glucoseValue: '',
     glucoseType: 'Ayunas',
@@ -355,8 +351,6 @@ export default function App() {
         systolic: form.systolic.trim(),
         diastolic: form.diastolic.trim(),
         pulse: form.pulse.trim(),
-        moment: form.pressureMoment,
-        meds: form.pressureMeds.trim(),
         notes: form.pressureNotes.trim(),
       };
       setPressureRecords((current) => [
@@ -420,7 +414,6 @@ export default function App() {
       systolic: '',
       diastolic: '',
       pulse: '',
-      pressureMeds: '',
       pressureNotes: '',
       glucoseValue: '',
       glucoseType: 'Ayunas',
@@ -791,27 +784,6 @@ function SectionView({
               </label>
             </div>
 
-            <div className="row two">
-              <label className="field">
-                <span>Momento del día</span>
-                <select name="pressureMoment" value={form.pressureMoment} onChange={onChange}>
-                  <option>Mañana</option>
-                  <option>Tarde</option>
-                  <option>Noche</option>
-                  <option>Madrugada</option>
-                </select>
-              </label>
-            </div>
-
-            <label className="field">
-              <span>Medicación tomada antes de la medición</span>
-              <input
-                name="pressureMeds"
-                value={form.pressureMeds}
-                onChange={onChange}
-                placeholder="Ej. Losartan 8:00, carvedilol 20:00"
-              />
-            </label>
             <label className="field">
               <span>Observaciones</span>
               <textarea
@@ -985,7 +957,6 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
                 <th>Hora</th>
                 <th>Presión</th>
                 <th>Pulso</th>
-                <th>Momento</th>
                 <th>Observaciones</th>
               </tr>
             </thead>
@@ -996,11 +967,7 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
                   <td>{record.time}</td>
                   <td>{record.systolic || '-'} / {record.diastolic || '-'} mmHg</td>
                   <td>{record.pulse || '-'} lpm</td>
-                  <td>{record.moment}</td>
-                  <td>
-                    Medicación previa: {record.meds || 'No registrada'}.
-                    Observaciones: {record.notes || 'Sin observaciones'}.
-                  </td>
+                  <td>{record.notes || 'Sin observaciones'}</td>
                 </tr>
               ))}
             </tbody>
@@ -1279,17 +1246,7 @@ function PressureRecords({ records, patientName, onDelete }) {
       ) : (
         records.map((record, index) => {
           const shouldNotify = isHighPressure(record);
-          const patientLabel = patientName?.trim() || 'Paciente sin nombre registrado';
-          const consultMessage = [
-            'Registro de presión arterial para revisar.',
-            `Paciente: ${patientLabel}`,
-            `Presión: ${record.systolic || '-'} / ${record.diastolic || '-'} mmHg`,
-            `Pulso: ${record.pulse || '-'} lpm`,
-            `Fecha y hora: ${record.date} ${record.time}`,
-            record.moment ? `Momento: ${record.moment}` : '',
-            record.meds ? `Medicación previa: ${record.meds}` : '',
-            record.notes ? `Observaciones: ${record.notes}` : '',
-          ].filter(Boolean).join('\n');
+          const consultMessage = buildPressureConsultMessage(record, patientName);
 
           return (
           <article className={shouldNotify ? 'control-card attention' : 'control-card'} key={record.id}>
@@ -1303,9 +1260,7 @@ function PressureRecords({ records, patientName, onDelete }) {
             <div className="control-meta">
               <span>{record.date}</span>
               <span>{record.time}</span>
-              <span>{record.moment}</span>
             </div>
-            <p><strong>Medicación previa:</strong> {record.meds || 'No registrada'}</p>
             <p><strong>Observaciones:</strong> {record.notes || 'Sin observaciones'}</p>
             {shouldNotify && (
               <a
