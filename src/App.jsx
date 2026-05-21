@@ -77,9 +77,11 @@ function savePatientNameImmediately(nextName) {
 
 function getBmiCategory(bmi) {
   if (bmi < 18.5) return 'Bajo peso';
-  if (bmi < 25) return 'Normal';
+  if (bmi < 25) return 'Peso normal';
   if (bmi < 30) return 'Sobrepeso';
-  return 'Obesidad';
+  if (bmi < 35) return 'Obesidad grado I';
+  if (bmi < 40) return 'Obesidad grado II';
+  return 'Obesidad grado III';
 }
 
 function isHighPressure(record) {
