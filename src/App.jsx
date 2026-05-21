@@ -446,7 +446,7 @@ function ReportDownloadNotice({ reportDownload }) {
       {reportDownload.url && (
         <a className="btn soft full" href={reportDownload.url} download={reportDownload.fileName}>
           <ClipboardList size={18} />
-          Descargar PDF
+          Descargar PDF nuevamente
         </a>
       )}
     </div>
@@ -769,39 +769,13 @@ export default function App() {
       const pdfBlob = await createPatientPdf({ patientName, medications, pressureRecords, glucoseRecords, bmiRecords });
       const dateLabel = new Date().toISOString().slice(0, 10);
       const fileName = `Cardio-GM-${cleanFileName(patientName)}-${dateLabel}.pdf`;
-      const pdfFile = typeof File !== 'undefined'
-        ? new File([pdfBlob], fileName, { type: 'application/pdf' })
-        : null;
-
-      if (pdfFile && navigator.share && navigator.canShare) {
-        let canSharePdf = false;
-        try {
-          canSharePdf = navigator.canShare({ files: [pdfFile] });
-        } catch {
-          canSharePdf = false;
-        }
-
-        if (canSharePdf) {
-          try {
-            await navigator.share({
-              files: [pdfFile],
-              title: 'Resumen Cardio GM',
-              text: 'Resumen de medicación y controles para compartir.',
-            });
-            return;
-          } catch (shareError) {
-            if (shareError?.name === 'AbortError') return;
-          }
-        }
-      }
-
       const downloadUrl = URL.createObjectURL(pdfBlob);
       setReportDownload((current) => {
         if (current?.url) URL.revokeObjectURL(current.url);
         return {
           url: downloadUrl,
           fileName,
-          message: 'Tu navegador no permitio compartir el PDF directo. Descargalo y envialo por WhatsApp.',
+          message: 'PDF descargado. Ahora podes compartirlo por WhatsApp desde Descargas o Archivos.',
         };
       });
       const downloadLink = document.createElement('a');
@@ -811,10 +785,13 @@ export default function App() {
       document.body.appendChild(downloadLink);
       downloadLink.click();
       downloadLink.remove();
-      window.alert('Este navegador no permite compartir el PDF directamente. Se descargó el archivo para enviarlo por WhatsApp.');
     } catch (error) {
       console.error(error);
-      window.alert('No se pudo generar el PDF. Probá nuevamente.');
+      setReportDownload({
+        url: '',
+        fileName: '',
+        message: 'No se pudo descargar el PDF. Proba nuevamente.',
+      });
     } finally {
       setSharingReport(false);
     }
@@ -1142,7 +1119,7 @@ function SectionView({
 
           <button className="btn red full" type="button" onClick={onSharePatientReport} disabled={sharingReport}>
             <ClipboardList size={18} />
-            {sharingReport ? 'Preparando PDF...' : 'Compartir PDF con medicación y controles'}
+            {sharingReport ? 'Preparando PDF...' : 'Descargar PDF'}
           </button>
           <ReportDownloadNotice reportDownload={reportDownload} />
         </>
@@ -1242,7 +1219,7 @@ function SectionView({
 
           <button className="btn red full" type="button" onClick={onSharePatientReport} disabled={sharingReport}>
             <ClipboardList size={18} />
-            {sharingReport ? 'Preparando PDF...' : 'Compartir PDF con medicación y controles'}
+            {sharingReport ? 'Preparando PDF...' : 'Descargar PDF'}
           </button>
           <ReportDownloadNotice reportDownload={reportDownload} />
         </>
