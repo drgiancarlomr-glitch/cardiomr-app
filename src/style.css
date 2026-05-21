@@ -142,7 +142,7 @@ button, input, textarea, select {
 .hero-logo {
   display: block;
   position: absolute;
-  top: 4px;
+  top: 12px;
   right: -22px;
   width: clamp(155px, 29vw, 235px);
   height: auto;
@@ -573,7 +573,7 @@ input:focus, select:focus, textarea:focus {
   }
 
   .hero-logo {
-    top: 4px;
+    top: 12px;
     right: -18px;
     width: 136px;
   }
