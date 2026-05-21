@@ -438,6 +438,12 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 2px 8px rgba(15,23,42,.04);
 }
 
+.control-card.attention {
+  border-color: #fecaca;
+  background: #fff7f7;
+  box-shadow: 0 12px 26px rgba(185,28,28,.08);
+}
+
 .stat-card span, .control-card-head span {
   display: block;
   color: #64748b;

@@ -54,6 +54,7 @@ const alertSigns = [
 
 const emptyMedicationFields = { medName: '', medSchedule: '', medEffects: '' };
 const storageKey = 'cardio-gm-patient-records';
+const consultorioWhatsapp = '593986426990';
 
 function loadSavedRecords() {
   try {
@@ -79,6 +80,18 @@ function getBmiCategory(bmi) {
   if (bmi < 25) return 'Normal';
   if (bmi < 30) return 'Sobrepeso';
   return 'Obesidad';
+}
+
+function isHighPressure(record) {
+  return Number(record.systolic) >= 180 || Number(record.diastolic) >= 110;
+}
+
+function isHighGlucose(record) {
+  return Number(record.value) >= 250;
+}
+
+function makeConsultorioWhatsappLink(message) {
+  return `https://wa.me/${consultorioWhatsapp}?text=${encodeURIComponent(message)}`;
 }
 
 export default function App() {
@@ -391,6 +404,7 @@ export default function App() {
             section={currentSection}
             form={form}
             saved={saved}
+            patientName={patientName}
             symptomRecords={symptomRecords}
             editingSymptomId={editingSymptomId}
             medications={medications}
@@ -496,6 +510,7 @@ function SectionView({
   section,
   form,
   saved,
+  patientName,
   symptomRecords,
   editingSymptomId,
   medications,
@@ -766,8 +781,8 @@ function SectionView({
             {saved && <p className="success">Control guardado en esta sesión.</p>}
           </form>
 
-          <PressureRecords records={pressureRecords} onDelete={onDeletePressureRecord} />
-          <GlucoseRecords records={glucoseRecords} onDelete={onDeleteGlucoseRecord} />
+          <PressureRecords records={pressureRecords} patientName={patientName} onDelete={onDeletePressureRecord} />
+          <GlucoseRecords records={glucoseRecords} patientName={patientName} onDelete={onDeleteGlucoseRecord} />
           <BmiRecords records={bmiRecords} onDelete={onDeleteBmiRecord} />
 
           <button className="btn red full" type="button" onClick={onPrintPatientReport}>
@@ -995,7 +1010,7 @@ function SymptomRecords({ records, onEdit, onDelete }) {
   );
 }
 
-function GlucoseRecords({ records, onDelete }) {
+function GlucoseRecords({ records, patientName, onDelete }) {
   const latest = records[0];
 
   return (
@@ -1019,8 +1034,19 @@ function GlucoseRecords({ records, onDelete }) {
           <p>Si el paciente es diabético, puede registrar glucosa en ayunas o al azar junto con sus controles.</p>
         </article>
       ) : (
-        records.map((record, index) => (
-          <article className="control-card" key={record.id}>
+        records.map((record, index) => {
+          const shouldNotify = isHighGlucose(record);
+          const patientLabel = patientName?.trim() || 'Paciente sin nombre registrado';
+          const consultMessage = [
+            'Registro de glucosa para revisar.',
+            `Paciente: ${patientLabel}`,
+            `Glucosa: ${record.value} mg/dL (${record.type})`,
+            `Fecha y hora: ${record.date} ${record.time}`,
+            record.notes ? `Notas: ${record.notes}` : '',
+          ].filter(Boolean).join('\n');
+
+          return (
+          <article className={shouldNotify ? 'control-card attention' : 'control-card'} key={record.id}>
             <div className="control-card-head">
               <div>
                 <span>Glucosa {records.length - index}</span>
@@ -1033,12 +1059,24 @@ function GlucoseRecords({ records, onDelete }) {
               <span>{record.time}</span>
             </div>
             <p><strong>Notas:</strong> {record.notes || 'Sin notas'}</p>
+            {shouldNotify && (
+              <a
+                className="btn whatsapp full card-action"
+                href={makeConsultorioWhatsappLink(consultMessage)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle size={18} />
+                Enviar este registro al consultorio
+              </a>
+            )}
             <button className="btn light full card-action" type="button" onClick={() => onDelete(record.id)}>
               <X size={18} />
               Eliminar glucosa
             </button>
           </article>
-        ))
+          );
+        })
       )}
     </section>
   );
@@ -1094,7 +1132,7 @@ function BmiRecords({ records, onDelete }) {
   );
 }
 
-function PressureRecords({ records, onDelete }) {
+function PressureRecords({ records, patientName, onDelete }) {
   const latest = records[0];
   const expectedFor15Days = 45;
 
@@ -1122,8 +1160,22 @@ function PressureRecords({ records, onDelete }) {
           </p>
         </article>
       ) : (
-        records.map((record, index) => (
-          <article className="control-card" key={record.id}>
+        records.map((record, index) => {
+          const shouldNotify = isHighPressure(record);
+          const patientLabel = patientName?.trim() || 'Paciente sin nombre registrado';
+          const consultMessage = [
+            'Registro de presión arterial para revisar.',
+            `Paciente: ${patientLabel}`,
+            `Presión: ${record.systolic || '-'} / ${record.diastolic || '-'} mmHg`,
+            `Pulso: ${record.pulse || '-'} lpm`,
+            `Fecha y hora: ${record.date} ${record.time}`,
+            record.moment ? `Momento: ${record.moment}` : '',
+            record.meds ? `Medicación previa: ${record.meds}` : '',
+            record.notes ? `Observaciones: ${record.notes}` : '',
+          ].filter(Boolean).join('\n');
+
+          return (
+          <article className={shouldNotify ? 'control-card attention' : 'control-card'} key={record.id}>
             <div className="control-card-head">
               <div>
                 <span>Medición {records.length - index}</span>
@@ -1138,12 +1190,24 @@ function PressureRecords({ records, onDelete }) {
             </div>
             <p><strong>Medicación previa:</strong> {record.meds || 'No registrada'}</p>
             <p><strong>Observaciones:</strong> {record.notes || 'Sin observaciones'}</p>
+            {shouldNotify && (
+              <a
+                className="btn whatsapp full card-action"
+                href={makeConsultorioWhatsappLink(consultMessage)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle size={18} />
+                Enviar este registro al consultorio
+              </a>
+            )}
             <button className="btn light full card-action" type="button" onClick={() => onDelete(record.id)}>
               <X size={18} />
               Eliminar medición
             </button>
           </article>
-        ))
+          );
+        })
       )}
 
       <div className="warning">
