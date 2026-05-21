@@ -162,14 +162,26 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 46;
   const contentWidth = pageWidth - margin * 2;
+  const navy = [29, 78, 137];
+  const red = [190, 24, 45];
+  const slate = [17, 24, 39];
   const generatedAt = new Date().toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
   const logoDataUrl = await getImageDataUrl('/cardio-gm-logo.png');
-  let y = 58;
+  let y = 68;
+
+  function decoratePage() {
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(1.4);
+    doc.roundedRect(26, 26, pageWidth - 52, pageHeight - 52, 10, 10);
+    doc.setFillColor(...red);
+    doc.rect(26, 26, pageWidth - 52, 7, 'F');
+  }
 
   function ensureSpace(height) {
     if (y + height <= pageHeight - margin) return;
     doc.addPage();
-    y = margin;
+    decoratePage();
+    y = margin + 14;
   }
 
   function writeWrapped(text, x, maxWidth, options = {}) {
@@ -179,50 +191,70 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   }
 
   function addHeader() {
-    doc.setTextColor(15, 23, 42);
+    decoratePage();
+    const logoWidth = 118;
+    const logoHeight = 62;
+    const logoX = pageWidth - margin - logoWidth;
+    const textBlockWidth = logoX - margin - 18;
+    const textCenter = margin + textBlockWidth / 2;
+
+    doc.addImage(logoDataUrl, 'PNG', logoX, 58, logoWidth, logoHeight);
+    doc.setTextColor(...slate);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
-    doc.text('Cardio GM', margin, y);
-    y += 28;
-    doc.setFontSize(16);
-    doc.text('Dr. Giancarlo Muñoz Rennella', margin, y);
-    y += 20;
+    doc.setFontSize(28);
+    doc.text('Cardio GM', textCenter, y, { align: 'center' });
+    y += 30;
+    doc.setTextColor(...navy);
+    doc.setFontSize(17);
+    doc.text('Dr. Giancarlo Muñoz Rennella', textCenter, y, { align: 'center' });
+    y += 19;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
-    doc.text('Cardiólogo Intervencionista', margin, y);
-    y += 22;
-    doc.setDrawColor(15, 23, 42);
-    doc.setLineWidth(1.2);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Cardiólogo Intervencionista', textCenter, y, { align: 'center' });
+    y += 20;
+
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(1.4);
     doc.line(margin, y, pageWidth - margin, y);
-    doc.addImage(logoDataUrl, 'PNG', pageWidth - margin - 118, 52, 118, 62);
+    doc.setDrawColor(...red);
+    doc.setLineWidth(2);
+    doc.line(margin, y + 5, margin + 150, y + 5);
     y += 24;
 
     doc.setFillColor(248, 250, 252);
-    doc.setDrawColor(203, 213, 225);
-    doc.roundedRect(margin, y, contentWidth, 54, 10, 10, 'FD');
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(1.1);
+    doc.roundedRect(margin, y, contentWidth, 58, 10, 10, 'FD');
+    doc.setFillColor(...red);
+    doc.roundedRect(margin, y, 7, 58, 4, 4, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    doc.text('PACIENTE', margin + 16, y + 20);
-    doc.setTextColor(17, 24, 39);
-    doc.setFontSize(14);
-    doc.text(patientName?.trim() || 'Sin nombre registrado', margin + 16, y + 40);
+    doc.setTextColor(...navy);
+    doc.text('PACIENTE', margin + 20, y + 20);
+    doc.setTextColor(...slate);
+    doc.setFontSize(16);
+    doc.text(patientName?.trim() || 'Sin nombre registrado', margin + 20, y + 43);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(71, 85, 105);
-    doc.text(`Generado: ${generatedAt}`, pageWidth - margin - 150, y + 33);
-    y += 78;
+    doc.text(`Resumen generado: ${generatedAt}`, pageWidth - margin - 16, y + 34, { align: 'right' });
+    y += 84;
   }
 
   function addSection(title) {
     ensureSpace(42);
-    doc.setTextColor(185, 28, 28);
+    doc.setTextColor(...red);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(15);
     doc.text(title, margin, y);
     y += 10;
-    doc.setDrawColor(226, 232, 240);
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(.8);
     doc.line(margin, y, pageWidth - margin, y);
+    doc.setDrawColor(...red);
+    doc.setLineWidth(1.6);
+    doc.line(margin, y + 4, margin + 90, y + 4);
     y += 18;
   }
 
@@ -234,13 +266,16 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     }, 22);
     ensureSpace(estimatedHeight);
     doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(226, 232, 240);
+    doc.setDrawColor(203, 213, 225);
     doc.roundedRect(margin, y - 6, contentWidth, estimatedHeight, 8, 8, 'FD');
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(.8);
+    doc.line(margin, y - 6, margin, y - 6 + estimatedHeight);
     y += 12;
     prepared.forEach((line, index) => {
       doc.setFont('helvetica', index === 0 ? 'bold' : 'normal');
       doc.setFontSize(index === 0 ? 11 : 10);
-      doc.setTextColor(index === 0 ? 15 : 51, index === 0 ? 23 : 65, index === 0 ? 42 : 85);
+      doc.setTextColor(index === 0 ? red[0] : 51, index === 0 ? red[1] : 65, index === 0 ? red[2] : 85);
       writeWrapped(line, margin + 14, contentWidth - 28);
       y += 2;
     });
