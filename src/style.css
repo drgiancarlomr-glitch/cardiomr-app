@@ -720,4 +720,18 @@ input:focus, select:focus, textarea:focus {
     font-size: 10px;
     text-transform: uppercase;
   }
+
+  .print-footer {
+    margin-top: 18px;
+    padding-top: 10px;
+    border-top: 2px solid #172554;
+    color: #475569;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .print-footer p {
+    margin: 2px 0;
+  }
 }

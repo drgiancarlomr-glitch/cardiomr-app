@@ -55,6 +55,11 @@ const alertSigns = [
 const emptyMedicationFields = { medName: '', medSchedule: '', medEffects: '' };
 const storageKey = 'cardio-gm-patient-records';
 const consultorioWhatsapp = '593986426990';
+const contactFooter = [
+  'Hospital Básico Rodríguez',
+  'Dirección: calles Libia Peñafiel y Mariana Cueva',
+  'Mail: giancarlomrennella@gmail.com · Celular: 0986426990',
+];
 
 function loadSavedRecords() {
   try {
@@ -182,6 +187,10 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     doc.rect(32, 30, pageWidth - 64, 4, 'F');
     doc.setFillColor(...navy);
     doc.rect(32, 37, pageWidth - 64, 3, 'F');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(contactFooter, pageWidth / 2, pageHeight - 67, { align: 'center' });
     doc.setFillColor(...navy);
     doc.rect(32, pageHeight - 40, pageWidth - 64, 3, 'F');
     doc.setFillColor(...red);
@@ -189,7 +198,7 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   }
 
   function ensureSpace(height) {
-    if (y + height <= pageHeight - margin) return;
+    if (y + height <= pageHeight - 92) return;
     doc.addPage();
     decoratePage();
     y = margin + 14;
@@ -1396,6 +1405,12 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
           </table>
         )}
       </article>
+
+      <footer className="print-footer">
+        {contactFooter.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </footer>
     </section>
   );
 }
