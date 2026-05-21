@@ -132,24 +132,24 @@ button, input, textarea, select {
 }
 
 .hero-brand-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 22px;
+  display: block;
+  min-height: 122px;
+  padding-right: clamp(170px, 30vw, 250px);
 }
 
 .hero-logo {
   display: block;
+  position: absolute;
+  top: 64px;
+  right: 0;
   width: clamp(150px, 28vw, 230px);
   height: auto;
-  flex: 0 0 auto;
   object-fit: contain;
   filter: drop-shadow(0 18px 24px rgba(2,6,23,.32));
-  transform: translateY(10px);
 }
 
 .hero h2 {
-  margin: 12px 0 0;
+  margin: 6px 0 0;
   color: #fee2e2;
   font-size: clamp(24px, 4.5vw, 34px);
   line-height: 1.1;
@@ -565,12 +565,14 @@ input:focus, select:focus, textarea:focus {
   }
 
   .hero-brand-row {
-    align-items: center;
+    min-height: 82px;
+    padding-right: 132px;
   }
 
   .hero-logo {
+    top: 58px;
+    right: 0;
     width: 128px;
-    transform: translateY(6px);
   }
 
   .patient-hero-panel {
