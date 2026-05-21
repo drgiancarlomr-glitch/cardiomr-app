@@ -190,13 +190,14 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     doc.rect(32, 37, pageWidth - 64, 3, 'F');
     doc.setDrawColor(203, 213, 225);
     doc.setLineWidth(.6);
-    doc.line(margin, pageHeight - 84, pageWidth - margin, pageHeight - 84);
+    doc.line(margin, pageHeight - 62, pageWidth - margin, pageHeight - 62);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.2);
     doc.setTextColor(71, 85, 105);
-    doc.text(contactFooter.place, margin, pageHeight - 66);
-    doc.text(contactFooter.address, pageWidth / 2, pageHeight - 66, { align: 'center' });
-    doc.text([contactFooter.email, contactFooter.phone], pageWidth - margin, pageHeight - 70, { align: 'right' });
+    doc.text(`[H] ${contactFooter.place}`, margin, pageHeight - 47);
+    doc.text(`[Dir.] ${contactFooter.address}`, margin, pageHeight - 35);
+    doc.text(`@ ${contactFooter.email}`, pageWidth - margin, pageHeight - 47, { align: 'right' });
+    doc.text(`Tel. ${contactFooter.phone}`, pageWidth - margin, pageHeight - 35, { align: 'right' });
     doc.setFillColor(...navy);
     doc.rect(32, pageHeight - 40, pageWidth - 64, 3, 'F');
     doc.setFillColor(...red);
@@ -204,7 +205,7 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   }
 
   function ensureSpace(height) {
-    if (y + height <= pageHeight - 92) return;
+    if (y + height <= pageHeight - 78) return;
     doc.addPage();
     decoratePage();
     y = margin + 14;
@@ -1413,13 +1414,14 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
       </article>
 
       <footer className="print-footer">
-        <p>{contactFooter.place}</p>
-        <p>{contactFooter.address}</p>
-        <p>
-          {contactFooter.email}
-          <br />
-          {contactFooter.phone}
-        </p>
+        <div>
+          <p><span aria-hidden="true">H</span>{contactFooter.place}</p>
+          <p><span aria-hidden="true">⌖</span>{contactFooter.address}</p>
+        </div>
+        <div>
+          <p><span aria-hidden="true">@</span>{contactFooter.email}</p>
+          <p><span aria-hidden="true">☎</span>{contactFooter.phone}</p>
+        </div>
       </footer>
     </section>
   );

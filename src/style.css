@@ -599,7 +599,9 @@ input:focus, select:focus, textarea:focus {
   }
 
   .print-report {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 48px);
     padding: 24px;
     font-family: Manrope, Arial, sans-serif;
   }
@@ -722,11 +724,11 @@ input:focus, select:focus, textarea:focus {
   }
 
   .print-footer {
-    margin-top: 18px;
-    padding-top: 10px;
+    margin-top: auto;
+    padding-top: 8px;
     border-top: 2px solid #172554;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
     align-items: start;
     color: #475569;
@@ -735,14 +737,30 @@ input:focus, select:focus, textarea:focus {
   }
 
   .print-footer p {
+    display: flex;
+    gap: 6px;
+    align-items: center;
     margin: 2px 0;
   }
 
-  .print-footer p:nth-child(2) {
-    text-align: center;
+  .print-footer div:last-child {
+    justify-self: end;
+    text-align: right;
   }
 
-  .print-footer p:nth-child(3) {
-    text-align: right;
+  .print-footer div:last-child p {
+    justify-content: flex-end;
+  }
+
+  .print-footer span {
+    display: inline-grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 999px;
+    background: #172554;
+    color: white;
+    font-size: 8px;
+    font-weight: 900;
   }
 }
