@@ -126,7 +126,7 @@ button, input, textarea, select {
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(34px, 7vw, 52px);
+  font-size: clamp(32px, 6.6vw, 48px);
   line-height: 1.02;
   font-weight: 900;
 }
@@ -141,9 +141,9 @@ button, input, textarea, select {
 .hero-logo {
   display: block;
   position: absolute;
-  top: 14px;
-  right: -14px;
-  width: clamp(145px, 27vw, 220px);
+  top: 4px;
+  right: -22px;
+  width: clamp(155px, 29vw, 235px);
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 18px 24px rgba(2,6,23,.32));
@@ -566,15 +566,15 @@ input:focus, select:focus, textarea:focus {
   }
 
   .hero-brand-row {
-    min-height: 82px;
+    min-height: 92px;
     padding-top: 14px;
-    padding-right: 122px;
+    padding-right: 138px;
   }
 
   .hero-logo {
-    top: 24px;
-    right: -10px;
-    width: 116px;
+    top: 4px;
+    right: -18px;
+    width: 136px;
   }
 
   .patient-hero-panel {
