@@ -214,7 +214,7 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     doc.setTextColor(...slate);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(28);
-    doc.text('ALMACORE', margin, y);
+    doc.text('ANGIOGM', margin, y);
     y += 28;
     doc.setTextColor(...navy);
     doc.setFontSize(16);
@@ -768,7 +768,7 @@ export default function App() {
     try {
       const pdfBlob = await createPatientPdf({ patientName, medications, pressureRecords, glucoseRecords, bmiRecords });
       const dateLabel = new Date().toISOString().slice(0, 10);
-      const fileName = `ALMACORE-${cleanFileName(patientName)}-${dateLabel}.pdf`;
+      const fileName = `ANGIOGM-${cleanFileName(patientName)}-${dateLabel}.pdf`;
       const downloadUrl = URL.createObjectURL(pdfBlob);
       setReportDownload((current) => {
         if (current?.url) URL.revokeObjectURL(current.url);
@@ -806,7 +806,7 @@ export default function App() {
               <HeartPulse size={24} />
             </span>
             <span>
-              <span className="brand-title">ALMACORE</span>
+              <span className="brand-title">ANGIOGM</span>
               <span className="brand-sub">Dr. Giancarlo Muñoz Rennella · Cardiólogo Intervencionista</span>
             </span>
           </button>
@@ -882,7 +882,7 @@ function HomeView({ patientName, latestBmi, onPatientNameChange, onSelect }) {
           </div>
           <div className="hero-brand-row">
             <div>
-              <h1>ALMACORE</h1>
+              <h1>ANGIOGM</h1>
             </div>
             <CardioGmLogo />
           </div>
@@ -932,7 +932,7 @@ function HomeView({ patientName, latestBmi, onPatientNameChange, onSelect }) {
 
 function CardioGmLogo() {
   return (
-    <img className="hero-logo" src="/cardio-gm-logo.png" alt="Logo ALMACORE" />
+    <img className="hero-logo" src="/cardio-gm-logo.png" alt="Logo ANGIOGM" />
   );
 }
 
@@ -977,7 +977,7 @@ function SectionView({
       </button>
 
       <section className="section-title">
-        <p className="eyebrow">ALMACORE</p>
+        <p className="eyebrow">ANGIOGM</p>
         <h1>{section?.title}</h1>
         <p>{section?.text}</p>
       </section>
@@ -1263,7 +1263,7 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
         <div>
           <div className="print-title-row">
             <div>
-              <h1>ALMACORE</h1>
+              <h1>ANGIOGM</h1>
               <h2>Dr. Giancarlo Muñoz Rennella</h2>
               <p>Cardiólogo Intervencionista</p>
             </div>
@@ -1276,7 +1276,7 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
             <p>Resumen generado: {generatedAt}</p>
           </div>
         </div>
-        <img src="/cardio-gm-logo.png" alt="Logo ALMACORE" />
+        <img src="/cardio-gm-logo.png" alt="Logo ANGIOGM" />
       </header>
 
       <article>
