@@ -141,9 +141,9 @@ button, input, textarea, select {
 .hero-logo {
   display: block;
   position: absolute;
-  top: 26px;
-  right: -8px;
-  width: clamp(150px, 28vw, 230px);
+  top: 14px;
+  right: -14px;
+  width: clamp(145px, 27vw, 220px);
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 18px 24px rgba(2,6,23,.32));
@@ -568,13 +568,13 @@ input:focus, select:focus, textarea:focus {
   .hero-brand-row {
     min-height: 82px;
     padding-top: 14px;
-    padding-right: 132px;
+    padding-right: 122px;
   }
 
   .hero-logo {
-    top: 34px;
-    right: -4px;
-    width: 128px;
+    top: 24px;
+    right: -10px;
+    width: 116px;
   }
 
   .patient-hero-panel {
