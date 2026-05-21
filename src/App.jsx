@@ -167,7 +167,7 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
   const slate = [17, 24, 39];
   const generatedAt = new Date().toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
   const logoDataUrl = await getImageDataUrl('/cardio-gm-logo.png');
-  let y = 64;
+  let y = 78;
 
   function decoratePage() {
     doc.setFillColor(...red);
@@ -200,7 +200,7 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     const logoHeight = logoSize;
     const logoX = pageWidth - margin - logoWidth;
 
-    doc.addImage(logoDataUrl, 'PNG', logoX, 50, logoWidth, logoHeight);
+    doc.addImage(logoDataUrl, 'PNG', logoX, 58, logoWidth, logoHeight);
     doc.setTextColor(...slate);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(28);
@@ -257,10 +257,7 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     doc.setDrawColor(...navy);
     doc.setLineWidth(.8);
     doc.line(margin, y, pageWidth - margin, y);
-    doc.setDrawColor(...red);
-    doc.setLineWidth(1.6);
-    doc.line(margin, y + 5, margin + 82, y + 5);
-    y += 20;
+    y += 16;
   }
 
   function addRecord(lines) {
@@ -287,51 +284,144 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     y = boxTop + estimatedHeight + 16;
   }
 
+  function addTable(columns, rows) {
+    const headerHeight = 24;
+    const cellPadding = 6;
+
+    function rowHeight(row) {
+      return Math.max(
+        28,
+        ...columns.map((column, index) => {
+          const text = String(row[index] || '-');
+          const lines = doc.splitTextToSize(text, column.width - cellPadding * 2);
+          return lines.length * 12 + cellPadding * 2;
+        }),
+      );
+    }
+
+    ensureSpace(headerHeight + 30);
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(.8);
+    doc.rect(margin, y, contentWidth, headerHeight, 'FD');
+
+    let x = margin;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...navy);
+    columns.forEach((column) => {
+      doc.text(column.title, x + cellPadding, y + 16);
+      doc.line(x, y, x, y + headerHeight);
+      x += column.width;
+    });
+    doc.line(margin + contentWidth, y, margin + contentWidth, y + headerHeight);
+    y += headerHeight;
+
+    rows.forEach((row) => {
+      const height = rowHeight(row);
+      ensureSpace(height + headerHeight + 8);
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(203, 213, 225);
+      doc.rect(margin, y, contentWidth, height, 'S');
+
+      x = margin;
+      columns.forEach((column, index) => {
+        const text = String(row[index] || '-');
+        const lines = doc.splitTextToSize(text, column.width - cellPadding * 2);
+        doc.setFont('helvetica', index === 0 ? 'bold' : 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(index === 0 ? slate[0] : 51, index === 0 ? slate[1] : 65, index === 0 ? slate[2] : 85);
+        doc.text(lines, x + cellPadding, y + 15);
+        doc.setDrawColor(203, 213, 225);
+        doc.line(x, y, x, y + height);
+        x += column.width;
+      });
+      doc.line(margin + contentWidth, y, margin + contentWidth, y + height);
+      y += height;
+    });
+    y += 18;
+  }
+
   addHeader();
 
   addSection('Medicación actual');
   if (medications.length === 0) {
     addRecord(['Sin medicación registrada.']);
   } else {
-    medications.forEach((medication) => addRecord([
-      medication.name,
-      `Horario y dosis: ${medication.schedule}`,
-      `Efectos secundarios: ${medication.effects || 'No registrados'}`,
-    ]));
+    addTable(
+      [
+        { title: 'Medicación', width: contentWidth * .28 },
+        { title: 'Horario y dosis', width: contentWidth * .34 },
+        { title: 'Efectos secundarios', width: contentWidth * .38 },
+      ],
+      medications.map((medication) => [
+        medication.name,
+        medication.schedule,
+        medication.effects || 'No registrados',
+      ]),
+    );
   }
 
   addSection('Registros de presión arterial');
   if (pressureRecords.length === 0) {
     addRecord(['Sin controles de presión registrados.']);
   } else {
-    pressureRecords.forEach((record) => addRecord([
-      `${record.date} ${record.time}`,
-      `Presión: ${record.systolic || '-'} / ${record.diastolic || '-'} mmHg`,
-      `Frecuencia cardíaca: ${record.pulse || '-'} lpm`,
-      `Observaciones: ${record.notes || 'Sin observaciones'}`,
-    ]));
+    addTable(
+      [
+        { title: 'Fecha / hora', width: contentWidth * .22 },
+        { title: 'Presión', width: contentWidth * .22 },
+        { title: 'FC', width: contentWidth * .14 },
+        { title: 'Observaciones', width: contentWidth * .42 },
+      ],
+      pressureRecords.map((record) => [
+        `${record.date} ${record.time}`,
+        `${record.systolic || '-'} / ${record.diastolic || '-'} mmHg`,
+        `${record.pulse || '-'} lpm`,
+        record.notes || 'Sin observaciones',
+      ]),
+    );
   }
 
   addSection('Registros de glucosa');
   if (glucoseRecords.length === 0) {
     addRecord(['Sin controles de glucosa registrados.']);
   } else {
-    glucoseRecords.forEach((record) => addRecord([
-      `${record.date} ${record.time}`,
-      `Glucosa: ${record.value} mg/dL (${record.type})`,
-      `Notas: ${record.notes || 'Sin notas'}`,
-    ]));
+    addTable(
+      [
+        { title: 'Fecha / hora', width: contentWidth * .24 },
+        { title: 'Glucosa', width: contentWidth * .22 },
+        { title: 'Tipo', width: contentWidth * .16 },
+        { title: 'Notas', width: contentWidth * .38 },
+      ],
+      glucoseRecords.map((record) => [
+        `${record.date} ${record.time}`,
+        `${record.value} mg/dL`,
+        record.type,
+        record.notes || 'Sin notas',
+      ]),
+    );
   }
 
   addSection('Registros de IMC');
   if (bmiRecords.length === 0) {
     addRecord(['Sin controles de IMC registrados.']);
   } else {
-    bmiRecords.forEach((record) => addRecord([
-      `${record.date} ${record.time}`,
-      `Peso: ${record.weight} kg | Talla: ${record.height}`,
-      `IMC: ${record.bmi} (${record.category})`,
-    ]));
+    addTable(
+      [
+        { title: 'Fecha / hora', width: contentWidth * .24 },
+        { title: 'Peso', width: contentWidth * .16 },
+        { title: 'Talla', width: contentWidth * .16 },
+        { title: 'IMC', width: contentWidth * .16 },
+        { title: 'Categoría', width: contentWidth * .28 },
+      ],
+      bmiRecords.map((record) => [
+        `${record.date} ${record.time}`,
+        `${record.weight} kg`,
+        record.height,
+        record.bmi,
+        record.category,
+      ]),
+    );
   }
 
   return doc.output('blob');
