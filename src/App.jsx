@@ -199,9 +199,9 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     doc.text(`@ ${contactFooter.email}`, pageWidth - margin, pageHeight - 47, { align: 'right' });
     doc.text(`Tel. ${contactFooter.phone}`, pageWidth - margin, pageHeight - 35, { align: 'right' });
     doc.setFillColor(...navy);
-    doc.rect(32, pageHeight - 40, pageWidth - 64, 3, 'F');
+    doc.rect(32, pageHeight - 24, pageWidth - 64, 1.4, 'F');
     doc.setFillColor(...red);
-    doc.rect(32, pageHeight - 33, pageWidth - 64, 4, 'F');
+    doc.rect(32, pageHeight - 19, pageWidth - 64, 1.8, 'F');
   }
 
   function ensureSpace(height) {

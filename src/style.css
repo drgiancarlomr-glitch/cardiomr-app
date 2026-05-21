@@ -726,7 +726,7 @@ input:focus, select:focus, textarea:focus {
   .print-footer {
     margin-top: auto;
     padding-top: 8px;
-    border-top: 2px solid #172554;
+    border-top: 1px solid #172554;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
