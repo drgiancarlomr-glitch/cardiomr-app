@@ -138,10 +138,170 @@ function buildGlucoseConsultMessage(record, patientName) {
   ].filter(Boolean).join('\n');
 }
 
+function cleanFileName(value) {
+  return normalizeText(value)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'paciente';
+}
+
+async function getImageDataUrl(path) {
+  const response = await fetch(path);
+  const blob = await response.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function createPatientPdf({ patientName, medications, pressureRecords, glucoseRecords, bmiRecords }) {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 46;
+  const contentWidth = pageWidth - margin * 2;
+  const generatedAt = new Date().toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
+  const logoDataUrl = await getImageDataUrl('/cardio-gm-logo.png');
+  let y = 58;
+
+  function ensureSpace(height) {
+    if (y + height <= pageHeight - margin) return;
+    doc.addPage();
+    y = margin;
+  }
+
+  function writeWrapped(text, x, maxWidth, options = {}) {
+    const lines = doc.splitTextToSize(text, maxWidth);
+    doc.text(lines, x, y, options);
+    y += lines.length * 14;
+  }
+
+  function addHeader() {
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.text('Cardio GM', margin, y);
+    y += 28;
+    doc.setFontSize(16);
+    doc.text('Dr. Giancarlo Muñoz Rennella', margin, y);
+    y += 20;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.text('Cardiólogo Intervencionista', margin, y);
+    y += 22;
+    doc.setDrawColor(15, 23, 42);
+    doc.setLineWidth(1.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    doc.addImage(logoDataUrl, 'PNG', pageWidth - margin - 118, 52, 118, 62);
+    y += 24;
+
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(203, 213, 225);
+    doc.roundedRect(margin, y, contentWidth, 54, 10, 10, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text('PACIENTE', margin + 16, y + 20);
+    doc.setTextColor(17, 24, 39);
+    doc.setFontSize(14);
+    doc.text(patientName?.trim() || 'Sin nombre registrado', margin + 16, y + 40);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Generado: ${generatedAt}`, pageWidth - margin - 150, y + 33);
+    y += 78;
+  }
+
+  function addSection(title) {
+    ensureSpace(42);
+    doc.setTextColor(185, 28, 28);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.text(title, margin, y);
+    y += 10;
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 18;
+  }
+
+  function addRecord(lines) {
+    const prepared = lines.filter(Boolean);
+    const estimatedHeight = prepared.reduce((total, line) => {
+      doc.setFontSize(10);
+      return total + doc.splitTextToSize(line, contentWidth - 26).length * 13;
+    }, 22);
+    ensureSpace(estimatedHeight);
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y - 6, contentWidth, estimatedHeight, 8, 8, 'FD');
+    y += 12;
+    prepared.forEach((line, index) => {
+      doc.setFont('helvetica', index === 0 ? 'bold' : 'normal');
+      doc.setFontSize(index === 0 ? 11 : 10);
+      doc.setTextColor(index === 0 ? 15 : 51, index === 0 ? 23 : 65, index === 0 ? 42 : 85);
+      writeWrapped(line, margin + 14, contentWidth - 28);
+      y += 2;
+    });
+    y += 8;
+  }
+
+  addHeader();
+
+  addSection('Medicación actual');
+  if (medications.length === 0) {
+    addRecord(['Sin medicación registrada.']);
+  } else {
+    medications.forEach((medication) => addRecord([
+      medication.name,
+      `Horario y dosis: ${medication.schedule}`,
+      `Efectos secundarios: ${medication.effects || 'No registrados'}`,
+    ]));
+  }
+
+  addSection('Registros de presión arterial');
+  if (pressureRecords.length === 0) {
+    addRecord(['Sin controles de presión registrados.']);
+  } else {
+    pressureRecords.forEach((record) => addRecord([
+      `${record.date} ${record.time}`,
+      `Presión: ${record.systolic || '-'} / ${record.diastolic || '-'} mmHg`,
+      `Frecuencia cardíaca: ${record.pulse || '-'} lpm`,
+      `Observaciones: ${record.notes || 'Sin observaciones'}`,
+    ]));
+  }
+
+  addSection('Registros de glucosa');
+  if (glucoseRecords.length === 0) {
+    addRecord(['Sin controles de glucosa registrados.']);
+  } else {
+    glucoseRecords.forEach((record) => addRecord([
+      `${record.date} ${record.time}`,
+      `Glucosa: ${record.value} mg/dL (${record.type})`,
+      `Notas: ${record.notes || 'Sin notas'}`,
+    ]));
+  }
+
+  addSection('Registros de IMC');
+  if (bmiRecords.length === 0) {
+    addRecord(['Sin controles de IMC registrados.']);
+  } else {
+    bmiRecords.forEach((record) => addRecord([
+      `${record.date} ${record.time}`,
+      `Peso: ${record.weight} kg | Talla: ${record.height}`,
+      `IMC: ${record.bmi} (${record.category})`,
+    ]));
+  }
+
+  return doc.output('blob');
+}
+
 export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
   const [urgentNotice, setUrgentNotice] = useState(null);
+  const [sharingReport, setSharingReport] = useState(false);
   const [patientName, setPatientName] = useState(() => loadSavedRecords().patientName || '');
   const [symptomRecords, setSymptomRecords] = useState(() => loadSavedRecords().symptomRecords || []);
   const [editingSymptomId, setEditingSymptomId] = useState(null);
@@ -439,8 +599,35 @@ export default function App() {
     setSaved(false);
   }
 
-  function printPatientReport() {
-    window.print();
+  async function sharePatientReport() {
+    setSharingReport(true);
+    try {
+      const pdfBlob = await createPatientPdf({ patientName, medications, pressureRecords, glucoseRecords, bmiRecords });
+      const dateLabel = new Date().toISOString().slice(0, 10);
+      const fileName = `Cardio-GM-${cleanFileName(patientName)}-${dateLabel}.pdf`;
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare?.({ files: [pdfFile] })) {
+        await navigator.share({
+          files: [pdfFile],
+          title: 'Resumen Cardio GM',
+          text: 'Resumen de medicación y controles para compartir.',
+        });
+        return;
+      }
+
+      const downloadUrl = URL.createObjectURL(pdfBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = downloadUrl;
+      downloadLink.download = fileName;
+      downloadLink.click();
+      URL.revokeObjectURL(downloadUrl);
+      window.alert('Este navegador no permite compartir el PDF directamente. Se descargó el archivo para enviarlo por WhatsApp.');
+    } catch (error) {
+      window.alert('No se pudo generar el PDF. Probá nuevamente.');
+    } finally {
+      setSharingReport(false);
+    }
   }
 
   return (
@@ -500,7 +687,8 @@ export default function App() {
             onDeletePressureRecord={deletePressureRecord}
             onDeleteGlucoseRecord={deleteGlucoseRecord}
             onDeleteBmiRecord={deleteBmiRecord}
-            onPrintPatientReport={printPatientReport}
+            sharingReport={sharingReport}
+            onSharePatientReport={sharePatientReport}
           />
         )}
       </main>
@@ -607,7 +795,8 @@ function SectionView({
   onDeletePressureRecord,
   onDeleteGlucoseRecord,
   onDeleteBmiRecord,
-  onPrintPatientReport,
+  sharingReport,
+  onSharePatientReport,
 }) {
   const Icon = section?.icon || ClipboardList;
 
@@ -759,9 +948,9 @@ function SectionView({
             No suspender ni cambiar dosis sin indicación médica. Llevar esta lista actualizada a cada control.
           </div>
 
-          <button className="btn red full" type="button" onClick={onPrintPatientReport}>
+          <button className="btn red full" type="button" onClick={onSharePatientReport} disabled={sharingReport}>
             <ClipboardList size={18} />
-            Generar PDF con medicación, presión y glucosa
+            {sharingReport ? 'Preparando PDF...' : 'Compartir PDF con medicación y controles'}
           </button>
         </>
       )}
@@ -858,9 +1047,9 @@ function SectionView({
           <GlucoseRecords records={glucoseRecords} patientName={patientName} onDelete={onDeleteGlucoseRecord} />
           <BmiRecords records={bmiRecords} onDelete={onDeleteBmiRecord} />
 
-          <button className="btn red full" type="button" onClick={onPrintPatientReport}>
+          <button className="btn red full" type="button" onClick={onSharePatientReport} disabled={sharingReport}>
             <ClipboardList size={18} />
-            Generar PDF con medicación, presión, glucosa e IMC
+            {sharingReport ? 'Preparando PDF...' : 'Compartir PDF con medicación y controles'}
           </button>
         </>
       )}

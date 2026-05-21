@@ -312,6 +312,10 @@ button, input, textarea, select {
   gap: 8px;
   cursor: pointer;
 }
+.btn:disabled {
+  cursor: wait;
+  opacity: .72;
+}
 .btn.primary { background: #020617; color: white; }
 .btn.red { background: #b91c1c; color: white; }
 .btn.light { background: white; color: #020617; border: 1px solid #e2e8f0; }
