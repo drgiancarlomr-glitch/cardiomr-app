@@ -194,10 +194,10 @@ async function createPatientPdf({ patientName, medications, pressureRecords, glu
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.2);
     doc.setTextColor(71, 85, 105);
-    doc.text(`[H] ${contactFooter.place}`, margin, pageHeight - 47);
-    doc.text(`[Dir.] ${contactFooter.address}`, margin, pageHeight - 35);
-    doc.text(`@ ${contactFooter.email}`, pageWidth - margin, pageHeight - 47, { align: 'right' });
-    doc.text(`Tel. ${contactFooter.phone}`, pageWidth - margin, pageHeight - 35, { align: 'right' });
+    doc.text(`🏥 ${contactFooter.place}`, margin, pageHeight - 47);
+    doc.text(`📍 ${contactFooter.address}`, margin, pageHeight - 35);
+    doc.text(`✉️ ${contactFooter.email}`, pageWidth - margin, pageHeight - 47, { align: 'right' });
+    doc.text(`☎️ ${contactFooter.phone}`, pageWidth - margin, pageHeight - 35, { align: 'right' });
     doc.setFillColor(...navy);
     doc.rect(32, pageHeight - 24, pageWidth - 64, 1.4, 'F');
     doc.setFillColor(...red);
@@ -1415,12 +1415,12 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
 
       <footer className="print-footer">
         <div>
-          <p><span aria-hidden="true">H</span>{contactFooter.place}</p>
-          <p><span aria-hidden="true">⌖</span>{contactFooter.address}</p>
+          <p><span aria-hidden="true">🏥</span>{contactFooter.place}</p>
+          <p><span aria-hidden="true">📍</span>{contactFooter.address}</p>
         </div>
         <div>
-          <p><span aria-hidden="true">@</span>{contactFooter.email}</p>
-          <p><span aria-hidden="true">☎</span>{contactFooter.phone}</p>
+          <p><span aria-hidden="true">✉️</span>{contactFooter.email}</p>
+          <p><span aria-hidden="true">☎️</span>{contactFooter.phone}</p>
         </div>
       </footer>
     </section>
