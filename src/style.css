@@ -368,6 +368,34 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 12px 30px rgba(185,28,28,.20);
 }
 
+.urgent-share-alert {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  border-radius: 24px;
+  background: #b91c1c;
+  color: white;
+  padding: 16px;
+  box-shadow: 0 18px 34px rgba(185,28,28,.18);
+}
+
+.urgent-share-alert strong {
+  display: block;
+  font-size: 18px;
+}
+
+.urgent-share-alert p {
+  margin: 4px 0 0;
+  color: #fee2e2;
+  line-height: 1.35;
+}
+
+.urgent-share-alert .btn {
+  grid-column: 1 / -1;
+  box-shadow: none;
+}
+
 .warning {
   border-radius: 26px;
   background: #fef2f2;
@@ -439,6 +467,12 @@ input:focus, select:focus, textarea:focus {
 }
 
 .control-card.attention {
+  border-color: #fecaca;
+  background: #fff7f7;
+  box-shadow: 0 12px 26px rgba(185,28,28,.08);
+}
+
+.med-card.attention {
   border-color: #fecaca;
   background: #fff7f7;
   box-shadow: 0 12px 26px rgba(185,28,28,.08);

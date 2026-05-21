@@ -83,20 +83,67 @@ function getBmiCategory(bmi) {
 }
 
 function isHighPressure(record) {
-  return Number(record.systolic) >= 180 || Number(record.diastolic) >= 110;
+  return Number(record.systolic) >= 180 || Number(record.diastolic) >= 110 || Number(record.pulse) > 120;
 }
 
 function isHighGlucose(record) {
   return Number(record.value) >= 250;
 }
 
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function isUrgentSymptom(record) {
+  const text = normalizeText(`${record.symptom} ${record.notes}`);
+  return ['mareo', 'desmayo', 'desmaye', 'desvanec', 'sincope'].some((word) => text.includes(word));
+}
+
 function makeConsultorioWhatsappLink(message) {
   return `https://wa.me/${consultorioWhatsapp}?text=${encodeURIComponent(message)}`;
+}
+
+function buildSymptomConsultMessage(record, patientName) {
+  return [
+    'Registro de síntoma para revisar.',
+    `Paciente: ${patientName?.trim() || 'Paciente sin nombre registrado'}`,
+    `Síntoma: ${record.symptom}`,
+    `Intensidad: ${record.intensity}`,
+    `Fecha y hora: ${record.date} ${record.time}`,
+    record.notes ? `Notas: ${record.notes}` : '',
+  ].filter(Boolean).join('\n');
+}
+
+function buildPressureConsultMessage(record, patientName) {
+  return [
+    'Registro de presión arterial / frecuencia cardíaca para revisar.',
+    `Paciente: ${patientName?.trim() || 'Paciente sin nombre registrado'}`,
+    `Presión: ${record.systolic || '-'} / ${record.diastolic || '-'} mmHg`,
+    `Frecuencia cardíaca: ${record.pulse || '-'} lpm`,
+    `Fecha y hora: ${record.date} ${record.time}`,
+    record.moment ? `Momento: ${record.moment}` : '',
+    record.meds ? `Medicación previa: ${record.meds}` : '',
+    record.notes ? `Observaciones: ${record.notes}` : '',
+  ].filter(Boolean).join('\n');
+}
+
+function buildGlucoseConsultMessage(record, patientName) {
+  return [
+    'Registro de glucosa para revisar.',
+    `Paciente: ${patientName?.trim() || 'Paciente sin nombre registrado'}`,
+    `Glucosa: ${record.value} mg/dL (${record.type})`,
+    `Fecha y hora: ${record.date} ${record.time}`,
+    record.notes ? `Notas: ${record.notes}` : '',
+  ].filter(Boolean).join('\n');
 }
 
 export default function App() {
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
+  const [urgentNotice, setUrgentNotice] = useState(null);
   const [patientName, setPatientName] = useState(() => loadSavedRecords().patientName || '');
   const [symptomRecords, setSymptomRecords] = useState(() => loadSavedRecords().symptomRecords || []);
   const [editingSymptomId, setEditingSymptomId] = useState(null);
@@ -152,12 +199,14 @@ export default function App() {
 
   function navigateTo(nextView) {
     setSaved(false);
+    setUrgentNotice(null);
     setView(nextView);
     window.history.pushState({ view: nextView }, '', window.location.pathname);
   }
 
   function navigateHome() {
     setSaved(false);
+    setUrgentNotice(null);
     setView('home');
     window.history.replaceState({ view: 'home' }, '', window.location.pathname);
   }
@@ -170,31 +219,46 @@ export default function App() {
   function updateField(event) {
     const { name, value } = event.target;
     setSaved(false);
+    setUrgentNotice(null);
     setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  function openUrgentWhatsApp(message, title) {
+    const whatsappLink = makeConsultorioWhatsappLink(message);
+    setUrgentNotice({ title, whatsappLink });
+    window.open(whatsappLink, '_blank', 'noopener,noreferrer');
   }
 
   function saveSymptom(event) {
     event.preventDefault();
     if (!form.symptom.trim() && !form.notes.trim()) return;
 
+    const existingSymptom = symptomRecords.find((item) => item.id === editingSymptomId);
+    const now = new Date();
     const symptomRecord = {
       id: editingSymptomId || crypto.randomUUID(),
       symptom: form.symptom.trim() || 'Síntoma sin especificar',
       intensity: form.intensity,
       notes: form.notes.trim(),
-      date: editingSymptomId ? undefined : new Date().toISOString().slice(0, 10),
-      time: editingSymptomId ? undefined : new Date().toTimeString().slice(0, 5),
+      date: existingSymptom?.date || now.toISOString().slice(0, 10),
+      time: existingSymptom?.time || now.toTimeString().slice(0, 5),
     };
 
     setSymptomRecords((current) => (
       editingSymptomId
         ? current.map((item) => (
             item.id === editingSymptomId
-              ? { ...item, ...symptomRecord, date: item.date, time: item.time }
+              ? { ...item, ...symptomRecord }
               : item
           ))
         : [symptomRecord, ...current]
     ));
+    if (isUrgentSymptom(symptomRecord)) {
+      openUrgentWhatsApp(
+        buildSymptomConsultMessage(symptomRecord, patientName),
+        'Síntoma de alerta registrado: enviar al consultorio.',
+      );
+    }
     setForm((current) => ({ ...current, symptom: '', intensity: 'Leve', notes: '' }));
     setEditingSymptomId(null);
     setSaved(true);
@@ -280,36 +344,52 @@ export default function App() {
 
     const date = form.pressureDate || new Date().toISOString().slice(0, 10);
     const time = form.pressureTime || new Date().toTimeString().slice(0, 5);
+    let pressureRecord = null;
+    let glucoseRecord = null;
 
     if (hasPressure) {
+      pressureRecord = {
+        id: crypto.randomUUID(),
+        date,
+        time,
+        systolic: form.systolic.trim(),
+        diastolic: form.diastolic.trim(),
+        pulse: form.pulse.trim(),
+        moment: form.pressureMoment,
+        meds: form.pressureMeds.trim(),
+        notes: form.pressureNotes.trim(),
+      };
       setPressureRecords((current) => [
-        {
-          id: crypto.randomUUID(),
-          date,
-          time,
-          systolic: form.systolic.trim(),
-          diastolic: form.diastolic.trim(),
-          pulse: form.pulse.trim(),
-          moment: form.pressureMoment,
-          meds: form.pressureMeds.trim(),
-          notes: form.pressureNotes.trim(),
-        },
+        pressureRecord,
         ...current,
       ]);
     }
 
     if (hasGlucose) {
+      glucoseRecord = {
+        id: crypto.randomUUID(),
+        date,
+        time,
+        value: form.glucoseValue.trim(),
+        type: form.glucoseType,
+        notes: form.glucoseNotes.trim(),
+      };
       setGlucoseRecords((current) => [
-        {
-          id: crypto.randomUUID(),
-          date,
-          time,
-          value: form.glucoseValue.trim(),
-          type: form.glucoseType,
-          notes: form.glucoseNotes.trim(),
-        },
+        glucoseRecord,
         ...current,
       ]);
+    }
+
+    if (pressureRecord && isHighPressure(pressureRecord)) {
+      openUrgentWhatsApp(
+        buildPressureConsultMessage(pressureRecord, patientName),
+        'Control de alerta registrado: enviar al consultorio.',
+      );
+    } else if (glucoseRecord && isHighGlucose(glucoseRecord)) {
+      openUrgentWhatsApp(
+        buildGlucoseConsultMessage(glucoseRecord, patientName),
+        'Glucosa de alerta registrada: enviar al consultorio.',
+      );
     }
 
     if (hasBmi) {
@@ -405,6 +485,7 @@ export default function App() {
             form={form}
             saved={saved}
             patientName={patientName}
+            urgentNotice={urgentNotice}
             symptomRecords={symptomRecords}
             editingSymptomId={editingSymptomId}
             medications={medications}
@@ -511,6 +592,7 @@ function SectionView({
   form,
   saved,
   patientName,
+  urgentNotice,
   symptomRecords,
   editingSymptomId,
   medications,
@@ -549,6 +631,20 @@ function SectionView({
         <p>{section?.text}</p>
       </section>
 
+      {urgentNotice && (
+        <div className="urgent-share-alert">
+          <AlertTriangle size={24} />
+          <div>
+            <strong>{urgentNotice.title}</strong>
+            <p>Se abrió WhatsApp con el mensaje preparado. Si no se abrió, toca el botón para enviarlo.</p>
+          </div>
+          <a className="btn whatsapp" href={urgentNotice.whatsappLink} target="_blank" rel="noreferrer">
+            <MessageCircle size={18} />
+            Enviar
+          </a>
+        </div>
+      )}
+
       {section?.id === 'symptoms' && (
         <>
           <form className="form-card" onSubmit={onSaveSymptom}>
@@ -585,7 +681,12 @@ function SectionView({
             )}
             {saved && <p className="success">Síntoma guardado en esta sesión.</p>}
           </form>
-          <SymptomRecords records={symptomRecords} onEdit={onEditSymptom} onDelete={onDeleteSymptom} />
+          <SymptomRecords
+            records={symptomRecords}
+            patientName={patientName}
+            onEdit={onEditSymptom}
+            onDelete={onDeleteSymptom}
+          />
         </>
       )}
 
@@ -972,7 +1073,7 @@ function PatientReport({ patientName, medications, pressureRecords, glucoseRecor
   );
 }
 
-function SymptomRecords({ records, onEdit, onDelete }) {
+function SymptomRecords({ records, patientName, onEdit, onDelete }) {
   return (
     <section className="grid">
       {records.length === 0 ? (
@@ -981,8 +1082,12 @@ function SymptomRecords({ records, onEdit, onDelete }) {
           <p>Los síntomas guardados aparecerán acá para revisar la evolución antes de la consulta.</p>
         </article>
       ) : (
-        records.map((record, index) => (
-          <article className="med-card" key={record.id}>
+        records.map((record, index) => {
+          const shouldNotify = isUrgentSymptom(record);
+          const consultMessage = buildSymptomConsultMessage(record, patientName);
+
+          return (
+          <article className={shouldNotify ? 'med-card attention' : 'med-card'} key={record.id}>
             <div className="control-card-head">
               <div>
                 <span>Registro {records.length - index}</span>
@@ -995,6 +1100,17 @@ function SymptomRecords({ records, onEdit, onDelete }) {
               <span>{record.time}</span>
             </div>
             <p><strong>Notas:</strong> {record.notes || 'Sin notas'}</p>
+            {shouldNotify && (
+              <a
+                className="btn whatsapp full card-action"
+                href={makeConsultorioWhatsappLink(consultMessage)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle size={18} />
+                Enviar este registro al consultorio
+              </a>
+            )}
             <button className="btn soft full card-action" type="button" onClick={() => onEdit(record)}>
               <Edit3 size={18} />
               Editar síntoma
@@ -1004,7 +1120,8 @@ function SymptomRecords({ records, onEdit, onDelete }) {
               Eliminar síntoma
             </button>
           </article>
-        ))
+          );
+        })
       )}
     </section>
   );
