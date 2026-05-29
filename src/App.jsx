@@ -40,8 +40,8 @@ const sections = [
   },
   {
     id: 'care',
-    title: 'Cuidados',
-    text: 'Guías para hipertensión, diabetes y cuidados luego de procedimientos.',
+    title: 'Cuidados y turnos',
+    text: 'Guías de cuidado, próximo control, Google Calendar y WhatsApp para turnos.',
     icon: Stethoscope,
     tone: 'care',
   },
