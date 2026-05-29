@@ -434,6 +434,67 @@ input:focus, select:focus, textarea:focus {
   font-weight: 800;
 }
 
+.care-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.care-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 28px;
+  background: white;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(15,23,42,.04);
+}
+
+.care-card h2 {
+  margin: 0;
+  color: #020617;
+  font-size: 22px;
+}
+
+.care-card > p {
+  margin: 8px 0 14px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.care-list {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.care-list h3 {
+  margin: 0 0 8px;
+  color: #1d4e89;
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.care-list ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #334155;
+  line-height: 1.48;
+}
+
+.care-list li + li {
+  margin-top: 6px;
+}
+
+.care-follow {
+  margin-top: 14px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 12px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
 .item {
   display: flex;
   align-items: flex-start;

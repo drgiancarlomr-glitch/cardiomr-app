@@ -37,6 +37,12 @@ const sections = [
     icon: Activity,
   },
   {
+    id: 'care',
+    title: 'Cuidados',
+    text: 'Guías para hipertensión, diabetes y cuidados luego de procedimientos.',
+    icon: Stethoscope,
+  },
+  {
     id: 'urgent',
     title: 'Señales de alerta',
     text: 'Identifica cuándo corresponde buscar ayuda inmediata.',
@@ -55,6 +61,54 @@ const alertSigns = [
 const emptyMedicationFields = { medName: '', medSchedule: '', medEffects: '' };
 const storageKey = 'cardio-gm-patient-records';
 const consultorioWhatsapp = '593986426990';
+
+const careGuides = [
+  {
+    title: 'Hipertensión arterial',
+    summary: 'Cuidar la presión todos los días: menos sal, medicación ordenada, registros y actividad indicada.',
+    care: ['Tomar la medicación como fue indicada.', 'Medir y anotar la presión si el doctor lo solicita.', 'Evitar antiinflamatorios o descongestionantes sin consultar.', 'Consultar si hay presión sistólica mayor a 180 mmHg o síntomas de alarma.'],
+    yes: ['Verduras, frutas enteras, menestras, pescado, pollo sin piel, huevo.', 'Arroz, verde, yuca o papa en porción moderada.', 'Preparaciones al horno, a la plancha, sudadas o al vapor.'],
+    no: ['Embutidos, cubitos, sopas instantáneas, snacks salados.', 'Frituras frecuentes, comida rápida, exceso de queso salado.', 'Agregar sal en la mesa.'],
+    meals: ['Desayuno: bolón pequeño asado o tortilla de verde con huevo.', 'Almuerzo: pescado al vapor con arroz moderado, menestra y ensalada.', 'Merienda: caldo de pollo casero bajo en sal o seco de pollo sin piel.'],
+    followUp: 'Control habitual cada 3 meses o antes según indicación.',
+  },
+  {
+    title: 'Diabetes',
+    summary: 'Ordenar carbohidratos, evitar bebidas azucaradas y registrar glucosa si fue indicado.',
+    care: ['No suspender medicación o insulina sin indicación.', 'Revisar pies todos los días.', 'Llevar registros de glucosa al control.', 'Consultar si hay glucosas muy altas, hipoglucemias o síntomas llamativos.'],
+    yes: ['Medio plato verduras, un cuarto proteína y un cuarto carbohidrato.', 'Proteínas magras, menestras, vegetales y frutas enteras.', 'Carbohidratos medidos: verde, yuca, papa, arroz, mote o avena.'],
+    no: ['Gaseosas, jugos, postres y pan dulce frecuente.', 'Combinar arroz + papa + yuca + maduro en porciones grandes.', 'Saltarse comidas si usa medicación que puede bajar glucosa.'],
+    meals: ['Desayuno: huevo con tomate/cebolla, verde pequeño y café sin azúcar.', 'Almuerzo: pollo o pescado, ensalada grande, menestra y poco arroz.', 'Merienda: sopa de verduras con pollo o atún con ensalada.'],
+    followUp: 'Control habitual cada 3 meses o según indicación.',
+  },
+  {
+    title: 'Post stent coronario',
+    summary: 'Proteger el stent, no suspender antiagregantes y retomar actividad progresivamente.',
+    care: ['No suspender aspirina, clopidogrel, ticagrelor u otro antiagregante sin autorización.', 'Evitar esfuerzos intensos los primeros días.', 'Controlar presión, glucosa y colesterol si corresponde.', 'Consultar urgente ante dolor de pecho, falta de aire intensa, desmayo o sangrado importante.'],
+    yes: ['Comida casera baja en sal, verduras diarias, pescado, pollo sin piel, menestras.', 'Grasas saludables en porción: aguacate, aceite vegetal, frutos secos sin sal.', 'Actividad física progresiva cuando el cardiólogo lo autorice.'],
+    no: ['Fumar o suspender medicación.', 'Frituras frecuentes y comidas muy grasosas.', 'Ignorar dolor de pecho nuevo o similar al previo.'],
+    meals: ['Desayuno: avena sin azúcar con fruta o huevo con verde asado.', 'Almuerzo: pescado, ensalada, menestra y arroz moderado.', 'Merienda: pollo al horno con verduras o sopa casera baja en sal.'],
+    followUp: 'Control a las pocas semanas y luego cada 3 meses o según indicación.',
+  },
+  {
+    title: 'Acceso radial',
+    summary: 'Cuidados del sitio de punción en muñeca luego del procedimiento.',
+    care: ['Mantener el sitio limpio y seco según indicación.', 'Evitar cargar peso o hacer fuerza con esa mano por 24-48 h o según indicación.', 'Si sangra, presionar firme y consultar.', 'Consultar si hay mano fría, cambio de color, adormecimiento o hinchazón.'],
+    yes: ['Comidas livianas, agua, frutas, verduras y proteína magra.', 'Mover suavemente los dedos si no hay dolor y fue autorizado.'],
+    no: ['Mojar o sumergir la muñeca el primer día si no fue autorizado.', 'Cargar fundas pesadas o apoyar peso con la mano.'],
+    meals: ['Desayuno: fruta entera, huevo y café sin exceso de azúcar.', 'Almuerzo: sopa o seco de pollo con ensalada.', 'Merienda: pescado o pollo con vegetales.'],
+    followUp: 'Control según indicación; habitualmente dentro de las primeras semanas.',
+  },
+  {
+    title: 'Acceso femoral',
+    summary: 'Cuidados del sitio de punción en ingle luego del procedimiento.',
+    care: ['Mantener el sitio limpio y seco.', 'Evitar subir gradas en exceso, agacharse, pujar o levantar peso por los días indicados.', 'Observar hematoma, sangrado, aumento de volumen o dolor.', 'Si aparece sangrado, acostarse, presionar firme y buscar ayuda.'],
+    yes: ['Caminar suave según indicación, sin esfuerzos.', 'Comida baja en sal y grasas, con buena hidratación si no hay restricción.'],
+    no: ['Ejercicio intenso, bicicleta, cargar peso o viajes largos sin consultar.', 'Frituras, alcohol excesivo o comidas pesadas inmediatamente después.'],
+    meals: ['Desayuno: avena o huevo con pan integral/verde pequeño.', 'Almuerzo: pescado o pollo con ensalada y porción moderada de arroz o yuca.', 'Merienda: caldo casero bajo en sal con proteína.'],
+    followUp: 'Control según indicación; habitualmente dentro de las primeras semanas.',
+  },
+];
 
 function loadSavedRecords() {
   try {
@@ -106,6 +160,48 @@ function isUrgentSymptom(record) {
 
 function makeConsultorioWhatsappLink(message) {
   return `https://wa.me/${consultorioWhatsapp}?text=${encodeURIComponent(message)}`;
+}
+
+function formatCalendarDate(date) {
+  return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+function downloadCalendarEvent(dateTime, patientName) {
+  const start = new Date(dateTime);
+  if (Number.isNaN(start.getTime())) return;
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const description = [
+    'Control cardiológico ANGIOGM.',
+    `Paciente: ${patientName?.trim() || 'Paciente'}`,
+    'Para pedir o confirmar turno: WhatsApp 0986426990.',
+  ].join('\\n');
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//ANGIOGM//Control//ES',
+    'BEGIN:VEVENT',
+    `UID:${crypto.randomUUID()}@angiogm`,
+    `DTSTAMP:${formatCalendarDate(new Date())}`,
+    `DTSTART:${formatCalendarDate(start)}`,
+    `DTEND:${formatCalendarDate(end)}`,
+    'SUMMARY:Control cardiológico ANGIOGM',
+    `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
+    'BEGIN:VALARM',
+    'TRIGGER:-PT48H',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Recordatorio de control cardiológico en 48 horas',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'control-angiogm.ics';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function buildSymptomConsultMessage(record, patientName) {
@@ -467,6 +563,7 @@ export default function App() {
   const [pressureRecords, setPressureRecords] = useState(() => loadSavedRecords().pressureRecords || []);
   const [glucoseRecords, setGlucoseRecords] = useState(() => loadSavedRecords().glucoseRecords || []);
   const [bmiRecords, setBmiRecords] = useState(() => loadSavedRecords().bmiRecords || []);
+  const [careAppointment, setCareAppointment] = useState(() => loadSavedRecords().careAppointment || '');
   const [form, setForm] = useState({
     symptom: '',
     intensity: 'Leve',
@@ -484,6 +581,7 @@ export default function App() {
     medName: '',
     medSchedule: '',
     medEffects: '',
+    careDateTime: '',
     notes: '',
   });
 
@@ -506,9 +604,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords }),
+      JSON.stringify({ patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords, careAppointment }),
     );
-  }, [patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords]);
+  }, [patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords, careAppointment]);
 
   useEffect(() => {
     return () => {
@@ -762,6 +860,13 @@ export default function App() {
     setSaved(false);
   }
 
+  function saveCareAppointment(event) {
+    event.preventDefault();
+    if (!form.careDateTime) return;
+    setCareAppointment(form.careDateTime);
+    setSaved(true);
+  }
+
   async function sharePatientReport() {
     setSharingReport(true);
     setReportDownload(null);
@@ -840,6 +945,7 @@ export default function App() {
             pressureRecords={pressureRecords}
             glucoseRecords={glucoseRecords}
             bmiRecords={bmiRecords}
+            careAppointment={careAppointment}
             onBack={navigateHome}
             onChange={updateField}
             onSaveSymptom={saveSymptom}
@@ -854,6 +960,7 @@ export default function App() {
             onDeletePressureRecord={deletePressureRecord}
             onDeleteGlucoseRecord={deleteGlucoseRecord}
             onDeleteBmiRecord={deleteBmiRecord}
+            onSaveCareAppointment={saveCareAppointment}
             sharingReport={sharingReport}
             reportDownload={reportDownload}
             onSharePatientReport={sharePatientReport}
@@ -949,6 +1056,7 @@ function SectionView({
   pressureRecords,
   glucoseRecords,
   bmiRecords,
+  careAppointment,
   onBack,
   onChange,
   onSaveSymptom,
@@ -963,6 +1071,7 @@ function SectionView({
   onDeletePressureRecord,
   onDeleteGlucoseRecord,
   onDeleteBmiRecord,
+  onSaveCareAppointment,
   sharingReport,
   reportDownload,
   onSharePatientReport,
@@ -1225,6 +1334,58 @@ function SectionView({
         </>
       )}
 
+      {section?.id === 'care' && (
+        <>
+          <div className="care-grid">
+            {careGuides.map((guide) => (
+              <article className="care-card" key={guide.title}>
+                <h2>{guide.title}</h2>
+                <p>{guide.summary}</p>
+                <CareList title="Cuidados" items={guide.care} />
+                <CareList title="Elegir" items={guide.yes} />
+                <CareList title="Evitar" items={guide.no} />
+                <CareList title="Ejemplos de comidas" items={guide.meals} />
+                <div className="care-follow">{guide.followUp}</div>
+              </article>
+            ))}
+          </div>
+
+          <form className="form-card" onSubmit={onSaveCareAppointment}>
+            <label className="field">
+              <span>Próximo control</span>
+              <input
+                type="datetime-local"
+                name="careDateTime"
+                value={form.careDateTime}
+                onChange={onChange}
+              />
+            </label>
+            <button className="btn primary full" type="submit">
+              <CalendarDays size={18} />
+              Guardar fecha
+            </button>
+            {careAppointment && (
+              <div className="report-download">
+                <p>Próximo control guardado: {new Date(careAppointment).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                <button className="btn soft full" type="button" onClick={() => downloadCalendarEvent(careAppointment, patientName)}>
+                  <CalendarDays size={18} />
+                  Descargar al calendario con recordatorio 48 h antes
+                </button>
+                <a
+                  className="btn whatsapp full card-action"
+                  href={makeConsultorioWhatsappLink(`Hola, soy ${patientName?.trim() || 'paciente de ANGIOGM'}. Quisiera pedir o confirmar turno para mi control.`)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MessageCircle size={18} />
+                  Pedir turno por WhatsApp
+                </a>
+              </div>
+            )}
+          </form>
+        </>
+      )}
+
       {section?.id === 'urgent' && (
         <div className="grid">
           <div className="alert-box">
@@ -1248,6 +1409,19 @@ function SectionView({
         </div>
       )}
     </>
+  );
+}
+
+function CareList({ title, items }) {
+  return (
+    <div className="care-list">
+      <h3>{title}</h3>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
