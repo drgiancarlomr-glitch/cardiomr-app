@@ -165,6 +165,19 @@ function makeConsultorioWhatsappLink(message) {
   return `https://wa.me/${consultorioWhatsapp}?text=${encodeURIComponent(message)}`;
 }
 
+function buildAppointmentWhatsAppMessage(patientName, appointmentDateTime) {
+  const patientLabel = patientName?.trim() || 'paciente de ANGIOGM';
+  const appointmentLabel = appointmentDateTime
+    ? new Date(appointmentDateTime).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' })
+    : 'fecha y hora pendiente de confirmar';
+
+  return [
+    `Hola, soy ${patientLabel}.`,
+    'Quisiera pedir o confirmar turno para mi control cardiológico.',
+    `Fecha y hora elegida: ${appointmentLabel}.`,
+  ].join('\n');
+}
+
 function formatCalendarDate(date) {
   return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 }
@@ -1392,7 +1405,7 @@ function SectionView({
                 </a>
                 <a
                   className="btn whatsapp full card-action"
-                  href={makeConsultorioWhatsappLink(`Hola, soy ${patientName?.trim() || 'paciente de ANGIOGM'}. Quisiera pedir o confirmar turno para mi control.`)}
+                  href={makeConsultorioWhatsappLink(buildAppointmentWhatsAppMessage(patientName, careAppointment))}
                   target="_blank"
                   rel="noreferrer"
                 >
