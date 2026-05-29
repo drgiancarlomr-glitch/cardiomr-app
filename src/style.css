@@ -249,6 +249,31 @@ button, input, textarea, select {
   transition: .18s ease;
 }
 
+.card:has(.card-icon.symptoms) {
+  background: linear-gradient(90deg, #fff7f7, #ffffff);
+  border-color: #fecaca;
+}
+
+.card:has(.card-icon.meds) {
+  background: linear-gradient(90deg, #f8fafc, #ffffff);
+  border-color: #cbd5e1;
+}
+
+.card:has(.card-icon.controls) {
+  background: linear-gradient(90deg, #eff6ff, #ffffff);
+  border-color: #bfdbfe;
+}
+
+.card:has(.card-icon.care) {
+  background: linear-gradient(90deg, #ecfdf5, #ffffff);
+  border-color: #bbf7d0;
+}
+
+.card:has(.card-icon.urgent) {
+  background: linear-gradient(90deg, #fff1f2, #ffffff);
+  border-color: #fecdd3;
+}
+
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 28px rgba(15,23,42,.09);
@@ -265,7 +290,30 @@ button, input, textarea, select {
   background: #020617;
 }
 
-.card-icon.red { background: #b91c1c; }
+.card-icon.symptoms {
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+  box-shadow: 0 12px 26px rgba(185,28,28,.16);
+}
+
+.card-icon.meds {
+  background: linear-gradient(135deg, #020617, #334155);
+  box-shadow: 0 12px 26px rgba(2,6,23,.15);
+}
+
+.card-icon.controls {
+  background: linear-gradient(135deg, #1d4e89, #2563eb);
+  box-shadow: 0 12px 26px rgba(37,99,235,.16);
+}
+
+.card-icon.care {
+  background: linear-gradient(135deg, #047857, #16a34a);
+  box-shadow: 0 12px 26px rgba(22,163,74,.16);
+}
+
+.card-icon.urgent {
+  background: linear-gradient(135deg, #991b1b, #dc2626);
+  box-shadow: 0 12px 26px rgba(220,38,38,.16);
+}
 
 .card-body {
   flex: 1;

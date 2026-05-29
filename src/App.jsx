@@ -22,32 +22,35 @@ const sections = [
     title: 'Registrar síntomas',
     text: 'Anota molestias, intensidad y contexto para tu próxima consulta.',
     icon: ClipboardList,
-    tone: 'red',
+    tone: 'symptoms',
   },
   {
     id: 'meds',
     title: 'Medicación',
     text: 'Revisa indicaciones frecuentes y marca tus tomas importantes.',
     icon: Pill,
+    tone: 'meds',
   },
   {
     id: 'controls',
     title: 'Controles',
     text: 'Organiza presión, pulso y próximas citas cardiológicas.',
     icon: Activity,
+    tone: 'controls',
   },
   {
     id: 'care',
     title: 'Cuidados',
     text: 'Guías para hipertensión, diabetes y cuidados luego de procedimientos.',
     icon: Stethoscope,
+    tone: 'care',
   },
   {
     id: 'urgent',
     title: 'Señales de alerta',
     text: 'Identifica cuándo corresponde buscar ayuda inmediata.',
     icon: AlertTriangle,
-    tone: 'red',
+    tone: 'urgent',
   },
 ];
 
