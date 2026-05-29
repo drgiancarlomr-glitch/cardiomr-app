@@ -166,42 +166,40 @@ function formatCalendarDate(date) {
   return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 }
 
-function downloadCalendarEvent(dateTime, patientName) {
+function buildGoogleCalendarUrl(dateTime, patientName) {
   const start = new Date(dateTime);
-  if (Number.isNaN(start.getTime())) return;
+  if (Number.isNaN(start.getTime())) return '';
   const end = new Date(start.getTime() + 30 * 60 * 1000);
-  const description = [
-    'Control cardiológico ANGIOGM.',
+  const title = 'Consulta Cardiología Dr. Giancarlo Muñoz Rennella - ANGIOGM';
+  const details = [
     `Paciente: ${patientName?.trim() || 'Paciente'}`,
-    'Para pedir o confirmar turno: WhatsApp 0986426990.',
-  ].join('\\n');
-  const ics = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//ANGIOGM//Control//ES',
-    'BEGIN:VEVENT',
-    `UID:${crypto.randomUUID()}@angiogm`,
-    `DTSTAMP:${formatCalendarDate(new Date())}`,
-    `DTSTART:${formatCalendarDate(start)}`,
-    `DTEND:${formatCalendarDate(end)}`,
-    'SUMMARY:Control cardiológico ANGIOGM',
-    `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
-    'BEGIN:VALARM',
-    'TRIGGER:-PT48H',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:Recordatorio de control cardiológico en 48 horas',
-    'END:VALARM',
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].join('\r\n');
-  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'control-angiogm.ics';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    'Recordatorio sugerido: 48 horas antes.',
+    'WhatsApp para pedir o confirmar turno: 0986426990.',
+  ].join('\n');
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${formatCalendarDate(start)}/${formatCalendarDate(end)}`,
+    details,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function getCareVisual(title) {
+  const text = normalizeText(title);
+  if (text.includes('hipertension')) return '🩺';
+  if (text.includes('diabetes')) return '🩸';
+  if (text.includes('stent')) return '❤️';
+  if (text.includes('radial')) return '✋';
+  if (text.includes('femoral')) return '🦵';
+  return '💙';
+}
+
+function getCareListVisual(title) {
+  if (title === 'Elegir') return '✅';
+  if (title === 'Evitar') return '🚫';
+  if (title === 'Cuidados') return '🛡️';
+  return '🍽️';
 }
 
 function buildSymptomConsultMessage(record, patientName) {
@@ -581,6 +579,7 @@ export default function App() {
     medName: '',
     medSchedule: '',
     medEffects: '',
+    careGuide: careGuides[0].title,
     careDateTime: '',
     notes: '',
   });
@@ -865,6 +864,8 @@ export default function App() {
     if (!form.careDateTime) return;
     setCareAppointment(form.careDateTime);
     setSaved(true);
+    const calendarUrl = buildGoogleCalendarUrl(form.careDateTime, patientName);
+    if (calendarUrl) window.open(calendarUrl, '_blank', 'noopener,noreferrer');
   }
 
   async function sharePatientReport() {
@@ -1077,6 +1078,7 @@ function SectionView({
   onSharePatientReport,
 }) {
   const Icon = section?.icon || ClipboardList;
+  const selectedCareGuide = careGuides.find((guide) => guide.title === form.careGuide) || careGuides[0];
 
   return (
     <>
@@ -1336,19 +1338,33 @@ function SectionView({
 
       {section?.id === 'care' && (
         <>
-          <div className="care-grid">
-            {careGuides.map((guide) => (
-              <article className="care-card" key={guide.title}>
-                <h2>{guide.title}</h2>
-                <p>{guide.summary}</p>
-                <CareList title="Cuidados" items={guide.care} />
-                <CareList title="Elegir" items={guide.yes} />
-                <CareList title="Evitar" items={guide.no} />
-                <CareList title="Ejemplos de comidas" items={guide.meals} />
-                <div className="care-follow">{guide.followUp}</div>
-              </article>
-            ))}
-          </div>
+          <label className="field care-picker">
+            <span>Elegí la guía que corresponde</span>
+            <select name="careGuide" value={form.careGuide} onChange={onChange}>
+              {careGuides.map((guide) => (
+                <option key={guide.title}>{guide.title}</option>
+              ))}
+            </select>
+          </label>
+
+          <article className="care-card poster-card">
+            <div className="care-hero">
+              <div>
+                <span className="care-visual" aria-hidden="true">{getCareVisual(selectedCareGuide.title)}</span>
+              </div>
+              <div>
+                <h2>{selectedCareGuide.title}</h2>
+                <p>{selectedCareGuide.summary}</p>
+              </div>
+            </div>
+            <CareList title="Cuidados" items={selectedCareGuide.care} />
+            <div className="care-two-col">
+              <CareList title="Elegir" items={selectedCareGuide.yes} />
+              <CareList title="Evitar" items={selectedCareGuide.no} />
+            </div>
+            <CareMeals items={selectedCareGuide.meals} />
+            <div className="care-follow">{selectedCareGuide.followUp}</div>
+          </article>
 
           <form className="form-card" onSubmit={onSaveCareAppointment}>
             <label className="field">
@@ -1362,15 +1378,15 @@ function SectionView({
             </label>
             <button className="btn primary full" type="submit">
               <CalendarDays size={18} />
-              Guardar fecha
+              Guardar y abrir Google Calendar
             </button>
             {careAppointment && (
               <div className="report-download">
                 <p>Próximo control guardado: {new Date(careAppointment).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                <button className="btn soft full" type="button" onClick={() => downloadCalendarEvent(careAppointment, patientName)}>
+                <a className="btn soft full" href={buildGoogleCalendarUrl(careAppointment, patientName)} target="_blank" rel="noreferrer">
                   <CalendarDays size={18} />
-                  Descargar al calendario con recordatorio 48 h antes
-                </button>
+                  Abrir en Google Calendar
+                </a>
                 <a
                   className="btn whatsapp full card-action"
                   href={makeConsultorioWhatsappLink(`Hola, soy ${patientName?.trim() || 'paciente de ANGIOGM'}. Quisiera pedir o confirmar turno para mi control.`)}
@@ -1415,12 +1431,35 @@ function SectionView({
 function CareList({ title, items }) {
   return (
     <div className="care-list">
-      <h3>{title}</h3>
+      <h3><span aria-hidden="true">{getCareListVisual(title)}</span>{title}</h3>
       <ul>
         {items.map((item) => (
           <li key={item}>{item}</li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function CareMeals({ items }) {
+  const labels = ['Desayuno', 'Almuerzo', 'Merienda'];
+  const icons = ['☀️', '🍲', '🌙'];
+
+  return (
+    <div className="meal-poster">
+      <h3><span aria-hidden="true">🍽️</span> Ejemplos de comidas</h3>
+      <div className="meal-grid">
+        {items.map((item, index) => {
+          const cleaned = item.replace(`${labels[index]}: `, '');
+          return (
+            <div className="meal-card" key={item}>
+              <span aria-hidden="true">{icons[index] || '🍽️'}</span>
+              <strong>{labels[index] || 'Comida'}</strong>
+              <p>{cleaned}</p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
