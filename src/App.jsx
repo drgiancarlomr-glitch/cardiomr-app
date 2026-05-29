@@ -40,8 +40,8 @@ const sections = [
   },
   {
     id: 'care',
-    title: 'Cuidados y turnos',
-    text: 'Guías de cuidado, próximo control, Google Calendar y WhatsApp para turnos.',
+    title: 'Cuidados',
+    text: 'Guías de cuidado para pacientes hipertensos, diabéticos y post procedimiento.',
     icon: Stethoscope,
     tone: 'care',
   },
@@ -163,42 +163,6 @@ function isUrgentSymptom(record) {
 
 function makeConsultorioWhatsappLink(message) {
   return `https://wa.me/${consultorioWhatsapp}?text=${encodeURIComponent(message)}`;
-}
-
-function buildAppointmentWhatsAppMessage(patientName, appointmentDateTime) {
-  const patientLabel = patientName?.trim() || 'paciente de ANGIOGM';
-  const appointmentLabel = appointmentDateTime
-    ? new Date(appointmentDateTime).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' })
-    : 'fecha y hora pendiente de confirmar';
-
-  return [
-    `Hola, soy ${patientLabel}.`,
-    'Quisiera pedir o confirmar turno para mi control cardiológico.',
-    `Fecha y hora elegida: ${appointmentLabel}.`,
-  ].join('\n');
-}
-
-function formatCalendarDate(date) {
-  return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-}
-
-function buildGoogleCalendarUrl(dateTime, patientName) {
-  const start = new Date(dateTime);
-  if (Number.isNaN(start.getTime())) return '';
-  const end = new Date(start.getTime() + 30 * 60 * 1000);
-  const title = 'Consulta Cardiología Dr. Giancarlo Muñoz Rennella - ANGIOGM';
-  const details = [
-    `Paciente: ${patientName?.trim() || 'Paciente'}`,
-    'Recordatorio sugerido: 48 horas antes.',
-    'WhatsApp para pedir o confirmar turno: 0986426990.',
-  ].join('\n');
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: title,
-    dates: `${formatCalendarDate(start)}/${formatCalendarDate(end)}`,
-    details,
-  });
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
 function getCareVisual(title) {
@@ -577,7 +541,6 @@ export default function App() {
   const [pressureRecords, setPressureRecords] = useState(() => loadSavedRecords().pressureRecords || []);
   const [glucoseRecords, setGlucoseRecords] = useState(() => loadSavedRecords().glucoseRecords || []);
   const [bmiRecords, setBmiRecords] = useState(() => loadSavedRecords().bmiRecords || []);
-  const [careAppointment, setCareAppointment] = useState(() => loadSavedRecords().careAppointment || '');
   const [form, setForm] = useState({
     symptom: '',
     intensity: 'Leve',
@@ -596,7 +559,6 @@ export default function App() {
     medSchedule: '',
     medEffects: '',
     careGuide: careGuides[0].title,
-    careDateTime: '',
     notes: '',
   });
 
@@ -619,9 +581,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords, careAppointment }),
+      JSON.stringify({ patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords }),
     );
-  }, [patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords, careAppointment]);
+  }, [patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords]);
 
   useEffect(() => {
     return () => {
@@ -875,15 +837,6 @@ export default function App() {
     setSaved(false);
   }
 
-  function saveCareAppointment(event) {
-    event.preventDefault();
-    if (!form.careDateTime) return;
-    setCareAppointment(form.careDateTime);
-    setSaved(true);
-    const calendarUrl = buildGoogleCalendarUrl(form.careDateTime, patientName);
-    if (calendarUrl) window.open(calendarUrl, '_blank', 'noopener,noreferrer');
-  }
-
   async function sharePatientReport() {
     setSharingReport(true);
     setReportDownload(null);
@@ -962,7 +915,6 @@ export default function App() {
             pressureRecords={pressureRecords}
             glucoseRecords={glucoseRecords}
             bmiRecords={bmiRecords}
-            careAppointment={careAppointment}
             onBack={navigateHome}
             onChange={updateField}
             onSaveSymptom={saveSymptom}
@@ -977,7 +929,6 @@ export default function App() {
             onDeletePressureRecord={deletePressureRecord}
             onDeleteGlucoseRecord={deleteGlucoseRecord}
             onDeleteBmiRecord={deleteBmiRecord}
-            onSaveCareAppointment={saveCareAppointment}
             sharingReport={sharingReport}
             reportDownload={reportDownload}
             onSharePatientReport={sharePatientReport}
@@ -1073,7 +1024,6 @@ function SectionView({
   pressureRecords,
   glucoseRecords,
   bmiRecords,
-  careAppointment,
   onBack,
   onChange,
   onSaveSymptom,
@@ -1088,7 +1038,6 @@ function SectionView({
   onDeletePressureRecord,
   onDeleteGlucoseRecord,
   onDeleteBmiRecord,
-  onSaveCareAppointment,
   sharingReport,
   reportDownload,
   onSharePatientReport,
@@ -1381,40 +1330,6 @@ function SectionView({
             <CareMeals items={selectedCareGuide.meals} />
             <div className="care-follow">{selectedCareGuide.followUp}</div>
           </article>
-
-          <form className="form-card" onSubmit={onSaveCareAppointment}>
-            <label className="field">
-              <span>Próximo control</span>
-              <input
-                type="datetime-local"
-                name="careDateTime"
-                value={form.careDateTime}
-                onChange={onChange}
-              />
-            </label>
-            <button className="btn primary full" type="submit">
-              <CalendarDays size={18} />
-              Guardar y abrir Google Calendar
-            </button>
-            {careAppointment && (
-              <div className="report-download">
-                <p>Próximo control guardado: {new Date(careAppointment).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                <a className="btn soft full" href={buildGoogleCalendarUrl(careAppointment, patientName)} target="_blank" rel="noreferrer">
-                  <CalendarDays size={18} />
-                  Abrir en Google Calendar
-                </a>
-                <a
-                  className="btn whatsapp full card-action"
-                  href={makeConsultorioWhatsappLink(buildAppointmentWhatsAppMessage(patientName, careAppointment))}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <MessageCircle size={18} />
-                  Pedir turno por WhatsApp
-                </a>
-              </div>
-            )}
-          </form>
         </>
       )}
 
