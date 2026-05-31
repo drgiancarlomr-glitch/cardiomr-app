@@ -29,7 +29,38 @@ async function getMessagingClient() {
 
 async function registerMessagingWorker() {
   const config = encodeURIComponent(JSON.stringify(firebaseConfig));
-  return navigator.serviceWorker.register(`/firebase-messaging-sw.js?config=${config}`);
+  const registration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?config=${config}`, { scope: '/' });
+  await navigator.serviceWorker.ready;
+
+  if (registration.active?.state === 'activated') return registration;
+
+  const worker = registration.installing || registration.waiting || registration.active;
+  if (!worker) throw new Error('No se pudo iniciar el service worker de recordatorios.');
+
+  await new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(new Error('El service worker de recordatorios no llegó a activarse.'));
+    }, 10000);
+
+    function checkState() {
+      if (worker.state === 'activated') {
+        window.clearTimeout(timeout);
+        resolve();
+      } else if (worker.state === 'redundant') {
+        window.clearTimeout(timeout);
+        reject(new Error('El service worker de recordatorios no pudo activarse.'));
+      }
+    }
+
+    worker.addEventListener('statechange', checkState);
+    checkState();
+  });
+
+  const readyRegistration = await navigator.serviceWorker.ready;
+  if (!readyRegistration.active || readyRegistration.active.state !== 'activated') {
+    throw new Error('El service worker de recordatorios no está activo.');
+  }
+  return readyRegistration;
 }
 
 async function saveToken(token) {
