@@ -482,6 +482,100 @@ input:focus, select:focus, textarea:focus {
   font-weight: 800;
 }
 
+.notification-gate,
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+.notification-gate-panel,
+.admin-panel {
+  width: min(100%, 520px);
+  border-radius: 28px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  box-shadow: 0 18px 44px rgba(15,23,42,.12);
+}
+
+.notification-gate-panel {
+  text-align: center;
+}
+
+.notification-gate-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 24px;
+  background: #b91c1c;
+  color: white;
+  box-shadow: 0 16px 30px rgba(185,28,28,.2);
+  font-size: 38px;
+  line-height: 1;
+}
+
+.notification-gate-panel h1,
+.admin-panel h1 {
+  margin: 0;
+  color: #020617;
+  font-size: 28px;
+  line-height: 1.08;
+}
+
+.notification-gate-panel > p:not(.eyebrow) {
+  margin: 14px 0 18px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.notification-gate-panel .success,
+.notification-gate-panel .warning {
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.admin-panel .form-card {
+  margin-top: 16px;
+}
+
+.push-toast {
+  position: fixed;
+  z-index: 20;
+  right: 18px;
+  bottom: 18px;
+  width: min(calc(100vw - 36px), 390px);
+  border-radius: 18px;
+  background: #172554;
+  color: white;
+  padding: 14px 42px 14px 14px;
+  box-shadow: 0 18px 36px rgba(15,23,42,.24);
+}
+
+.push-toast p {
+  margin: 4px 0 0;
+  color: rgba(255,255,255,.82);
+  line-height: 1.35;
+}
+
+.push-toast button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255,255,255,.14);
+  color: white;
+}
+
 .care-card {
   border: 1px solid #e2e8f0;
   border-radius: 28px;

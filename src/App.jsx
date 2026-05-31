@@ -15,6 +15,12 @@ import {
   Stethoscope,
   X,
 } from 'lucide-react';
+import {
+  activateNotifications,
+  listenForForegroundNotifications,
+  notificationsAvailable,
+  syncNotificationToken,
+} from './pushNotifications';
 
 const sections = [
   {
@@ -528,11 +534,19 @@ function ReportDownloadNotice({ reportDownload }) {
 }
 
 export default function App() {
+  const isAdminView = new URLSearchParams(window.location.search).has('admin');
   const [view, setView] = useState('home');
   const [saved, setSaved] = useState(false);
   const [urgentNotice, setUrgentNotice] = useState(null);
   const [sharingReport, setSharingReport] = useState(false);
   const [reportDownload, setReportDownload] = useState(null);
+  const [notificationGate, setNotificationGate] = useState(() => (
+    isAdminView || (typeof Notification !== 'undefined' && Notification.permission === 'granted')
+      ? 'hidden'
+      : 'prompt'
+  ));
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [foregroundNotification, setForegroundNotification] = useState(null);
   const [patientName, setPatientName] = useState(() => loadSavedRecords().patientName || '');
   const [symptomRecords, setSymptomRecords] = useState(() => loadSavedRecords().symptomRecords || []);
   const [editingSymptomId, setEditingSymptomId] = useState(null);
@@ -586,6 +600,21 @@ export default function App() {
   }, [patientName, symptomRecords, medications, pressureRecords, glucoseRecords, bmiRecords]);
 
   useEffect(() => {
+    if (isAdminView) return undefined;
+    syncNotificationToken().catch(console.error);
+    let unsubscribe = () => {};
+    listenForForegroundNotifications((payload) => {
+      setForegroundNotification({
+        title: payload.notification?.title || 'ANGIOGM',
+        message: payload.notification?.body || 'Tiene un nuevo recordatorio.',
+      });
+    }).then((cleanup) => {
+      unsubscribe = cleanup;
+    }).catch(console.error);
+    return () => unsubscribe();
+  }, [isAdminView]);
+
+  useEffect(() => {
     return () => {
       if (reportDownload?.url) URL.revokeObjectURL(reportDownload.url);
     };
@@ -608,6 +637,26 @@ export default function App() {
   function updatePatientName(nextName) {
     setPatientName(nextName);
     savePatientNameImmediately(nextName);
+  }
+
+  async function requestNotificationPermission() {
+    setNotificationGate('loading');
+    setNotificationMessage('');
+    try {
+      if (!notificationsAvailable()) throw new Error('Las notificaciones todavía no están configuradas.');
+      const result = await activateNotifications();
+      if (result.permission === 'granted') {
+        setNotificationMessage('Recordatorios activados correctamente.');
+        setNotificationGate('success');
+        return;
+      }
+      setNotificationMessage('Para recibir recordatorios deberá activarlos desde la configuración del navegador.');
+      setNotificationGate('denied');
+    } catch (error) {
+      console.error(error);
+      setNotificationMessage(error.message || 'No se pudieron activar los recordatorios.');
+      setNotificationGate('denied');
+    }
   }
 
   function updateField(event) {
@@ -872,6 +921,19 @@ export default function App() {
     }
   }
 
+  if (isAdminView) return <PushAdminPanel />;
+
+  if (notificationGate !== 'hidden') {
+    return (
+      <NotificationGate
+        status={notificationGate}
+        message={notificationMessage}
+        onActivate={requestNotificationPermission}
+        onContinue={() => setNotificationGate('hidden')}
+      />
+    );
+  }
+
   return (
     <>
       <header className="header">
@@ -942,7 +1004,114 @@ export default function App() {
         glucoseRecords={glucoseRecords}
         bmiRecords={bmiRecords}
       />
+      {foregroundNotification && (
+        <div className="push-toast">
+          <strong>{foregroundNotification.title}</strong>
+          <p>{foregroundNotification.message}</p>
+          <button type="button" onClick={() => setForegroundNotification(null)} aria-label="Cerrar">
+            <X size={16} />
+          </button>
+        </div>
+      )}
     </>
+  );
+}
+
+function NotificationGate({ status, message, onActivate, onContinue }) {
+  const canContinue = status === 'success' || status === 'denied';
+
+  return (
+    <main className="notification-gate">
+      <section className="notification-gate-panel">
+        <span className="notification-gate-icon" aria-hidden="true">♥</span>
+        <p className="eyebrow">ANGIOGM</p>
+        <h1>ACTIVAR RECORDATORIOS</h1>
+        <p>Active los recordatorios de ANGIOGM para recibir avisos importantes de salud cardiovascular.</p>
+        {message && <div className={status === 'success' ? 'success' : 'warning'}>{message}</div>}
+        {!canContinue && (
+          <button className="btn red full" type="button" onClick={onActivate} disabled={status === 'loading'}>
+            {status === 'loading' ? 'ACTIVANDO...' : 'ACTIVAR RECORDATORIOS'}
+          </button>
+        )}
+        {canContinue && (
+          <button className="btn primary full" type="button" onClick={onContinue}>
+            INGRESAR A ANGIOGM
+          </button>
+        )}
+      </section>
+    </main>
+  );
+}
+
+function PushAdminPanel() {
+  const [form, setForm] = useState({ secret: '', title: '', message: '', category: 'General' });
+  const [status, setStatus] = useState('');
+  const [sending, setSending] = useState(false);
+
+  function updateField(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  async function sendPush(event) {
+    event.preventDefault();
+    setSending(true);
+    setStatus('');
+    try {
+      const response = await fetch('/api/send-push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${form.secret}`,
+        },
+        body: JSON.stringify(form),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'No se pudo enviar.');
+      setStatus(`Notificación enviada. Recibieron: ${result.sent}. Fallaron: ${result.failed}.`);
+      setForm((current) => ({ ...current, title: '', message: '' }));
+    } catch (error) {
+      setStatus(error.message);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <main className="admin-shell">
+      <section className="admin-panel">
+        <p className="eyebrow">ANGIOGM</p>
+        <h1>Enviar recordatorio</h1>
+        <form className="form-card" onSubmit={sendPush}>
+          <label className="field">
+            <span>Clave administrativa</span>
+            <input type="password" name="secret" value={form.secret} onChange={updateField} required />
+          </label>
+          <label className="field">
+            <span>Título</span>
+            <input name="title" value={form.title} onChange={updateField} required />
+          </label>
+          <label className="field">
+            <span>Mensaje</span>
+            <textarea name="message" value={form.message} onChange={updateField} required />
+          </label>
+          <label className="field">
+            <span>Categoría</span>
+            <select name="category" value={form.category} onChange={updateField}>
+              <option>General</option>
+              <option>Medicación</option>
+              <option>Controles</option>
+              <option>Cuidados</option>
+              <option>Importante</option>
+            </select>
+          </label>
+          <button className="btn red full" type="submit" disabled={sending}>
+            {sending ? 'Enviando...' : 'Enviar notificación'}
+          </button>
+          {status && <p className="success">{status}</p>}
+        </form>
+      </section>
+    </main>
   );
 }
 
